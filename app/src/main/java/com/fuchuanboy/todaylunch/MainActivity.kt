@@ -12,85 +12,59 @@ import android.widget.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
 class MainActivity : Activity() {
-
     data class Dish(
         val name: String,
         val type: String,
-        val ingredients: String,
-        val protein: Int = 0,
-        val vegetables: Int = 0,
-        val fiber: Int = 0,
-        val calcium: Int = 0,
-        val iron: Int = 0
+        val ingredient: String,
+        val protein: Int,
+        val veg: Int,
+        val fiber: Int,
+        val calcium: Int,
+        val iron: Int
     )
 
-    private val porkNames = listOf(
-        "红烧肉", "青椒肉丝", "木须肉", "土豆烧肉", "蒜薹炒肉", "鱼香肉丝", "回锅肉", "农家小炒肉",
-        "京酱肉丝", "糖醋里脊", "锅包肉", "咕咾肉", "梅菜扣肉", "粉蒸肉", "小酥肉", "香菇滑肉",
-        "榨菜肉丝", "芹菜炒肉", "蒜苗炒肉", "洋葱炒肉", "豆角炒肉", "茭白炒肉", "苦瓜炒肉",
-        "青豆炒肉丁", "肉末茄子", "肉末豆角", "肉末粉条", "肉末蒸蛋", "白菜炖肉", "萝卜炖肉",
-        "冬瓜烧肉", "莲藕炖排骨", "排骨烧土豆", "糖醋排骨", "椒盐排骨", "红烧排骨"
-    )
-
-    private val rotatingNames = listOf(
-        "番茄炖牛腩|beef", "黑椒牛柳|beef", "芹菜炒牛肉|beef", "洋葱炒牛肉|beef", "土豆烧牛肉|beef",
-        "水煮牛肉|beef", "孜然羊肉|lamb", "葱爆羊肉|lamb", "洋葱炒羊肉|lamb", "红焖羊肉|lamb",
-        "姜爆鸭|duck", "魔芋烧鸭|duck", "啤酒鸭|duck", "土豆烧鸭|duck", "青椒炒鸭片|duck",
-        "宫保鸡丁|chicken", "香菇滑鸡|chicken", "青椒炒鸡丁|chicken", "黄焖鸡|chicken", "栗子烧鸡|chicken",
-        "板栗鸡块|chicken", "辣子鸡丁|chicken", "土豆鸡块|chicken", "葱油鸡|chicken", "红烧鸡翅|chicken",
-        "清蒸鲈鱼|fish", "红烧鲫鱼|fish", "糖醋鲤鱼|fish", "剁椒鱼头|fish", "香煎带鱼|fish",
-        "葱烧带鱼|fish", "酸菜鱼|fish", "水煮鱼片|fish", "清蒸多宝鱼|fish", "红烧黄花鱼|fish",
-        "虾仁炒蛋|shrimp", "蒜蓉大虾|shrimp", "白灼虾|shrimp", "椒盐虾|shrimp", "西兰花炒虾仁|shrimp"
-    )
-
-    private val beanEggNames = listOf(
-        "麻婆豆腐", "家常豆腐", "葱烧豆腐", "香煎豆腐", "锅塌豆腐", "红烧豆腐", "豆腐烧白菜", "豆腐烧蘑菇",
-        "肉末豆腐", "虾仁豆腐", "鸡蛋豆腐羹", "番茄豆腐", "小葱拌豆腐", "凉拌豆腐", "豆干炒芹菜",
-        "香干炒肉丝", "芹菜香干", "青椒炒豆干", "腐竹木耳", "腐竹烧肉", "黄豆芽炒粉条", "毛豆炒鸡蛋",
-        "韭菜炒鸡蛋", "番茄炒鸡蛋", "木耳炒鸡蛋", "黄瓜炒鸡蛋", "西葫芦炒鸡蛋", "青椒炒鸡蛋"
-    )
-
-    private val vegetableNames = listOf(
-        "蒜蓉空心菜", "清炒苋菜", "蒜蓉油麦菜", "清炒上海青", "香菇上海青", "蒜蓉生菜", "蚝油生菜", "清炒菜心",
-        "蒜蓉菠菜", "香菇青菜", "清炒白菜", "醋溜白菜", "蒜蓉西兰花", "清炒西兰花", "干煸四季豆", "蒜蓉四季豆",
-        "肉末豇豆", "清炒豇豆", "蒜泥茄子", "鱼香茄子", "红烧茄子", "清炒丝瓜", "蒜蓉丝瓜", "番茄烧丝瓜",
-        "清炒冬瓜", "虾皮冬瓜", "红烧冬瓜", "蒜蓉西葫芦", "清炒西葫芦", "酸辣土豆丝", "青椒土豆丝", "醋溜土豆丝",
-        "清炒藕片", "酸辣藕片", "荷塘小炒", "蒜蓉娃娃菜", "上汤娃娃菜", "清炒芥蓝", "蚝油芥蓝", "蒜蓉芥蓝",
-        "清炒芦笋", "蒜香芦笋", "香菇炒青菜", "木耳炒山药", "清炒山药", "蒜蓉菜花", "干锅菜花", "清炒豆芽",
-        "蒜苗炒豆芽", "炝炒莲白", "手撕包菜", "干锅包菜", "蒜蓉西葫芦", "清炒苦瓜", "苦瓜炒木耳", "凉拌黄瓜"
-    )
-
-    private val soupNames = listOf(
-        "番茄蛋花汤", "紫菜蛋花汤", "冬瓜排骨汤", "菌菇豆腐汤", "萝卜瘦肉汤", "青菜豆腐汤", "冬瓜虾皮汤", "丝瓜蛋汤",
-        "菠菜蛋花汤", "紫菜虾皮汤", "玉米排骨汤", "山药排骨汤", "莲藕排骨汤", "海带排骨汤", "冬瓜丸子汤", "白菜豆腐汤",
-        "酸辣汤", "三鲜汤", "菌菇鸡蛋汤", "丝瓜虾仁汤", "番茄豆腐汤", "毛豆蛋汤"
-    )
-
-    private val seasonal = mapOf(
-        1 to listOf("菠菜", "白菜", "上海青", "芥蓝", "萝卜", "西兰花"),
-        2 to listOf("菠菜", "菜心", "上海青", "芥蓝", "生菜", "西兰花"),
-        3 to listOf("菠菜", "菜心", "油麦菜", "芹菜", "春笋", "西兰花"),
-        4 to listOf("油麦菜", "上海青", "苋菜", "芦笋", "莴笋", "西葫芦"),
-        5 to listOf("空心菜", "苋菜", "生菜", "油麦菜", "丝瓜", "西兰花"),
-        6 to listOf("空心菜", "苋菜", "油麦菜", "丝瓜", "豇豆", "黄瓜"),
-        7 to listOf("空心菜", "苋菜", "丝瓜", "豇豆", "毛豆", "黄瓜"),
-        8 to listOf("空心菜", "苋菜", "丝瓜", "豇豆", "毛豆", "冬瓜"),
-        9 to listOf("空心菜", "油麦菜", "上海青", "丝瓜", "西兰花", "芥蓝"),
-        10 to listOf("菠菜", "上海青", "白菜", "芥蓝", "西兰花", "萝卜"),
-        11 to listOf("菠菜", "白菜", "上海青", "芥蓝", "萝卜", "西兰花"),
-        12 to listOf("菠菜", "白菜", "上海青", "芥蓝", "萝卜", "菜心")
-    )
-
-    private var meal = mutableListOf<Dish>()
-    private var selected: Dish? = null
     private lateinit var root: LinearLayout
     private lateinit var body: LinearLayout
-    private var currentTab = 0
+    private var meal = mutableListOf<Dish>()
+    private var tab = 0
+
+    private val porkBase = listOf("青椒","蒜薹","芹菜","木耳","洋葱","豆角","茄子","土豆","白菜","萝卜","冬瓜","莲藕","香菇","杏鲍菇","平菇","酸菜","梅菜","笋","蒜苗","韭菜","黄瓜","西葫芦","苦瓜","青豆","毛豆","豇豆","四季豆","豆芽","粉条","粉皮","豆腐","鸡蛋","榨菜","咸菜","荠菜","荸荠","山药","芋头","玉米","板栗")
+    private val beefBase = listOf("芹菜","洋葱","青椒","彩椒","土豆","番茄","西兰花","杏鲍菇","金针菇","木耳","蒜薹","葱","萝卜","胡萝卜","芥蓝","豆芽","韭黄","香菜","酸菜","粉丝","豆腐","冬瓜","山药","莲藕","青豆")
+    private val lambBase = listOf("大葱","洋葱","孜然","香菜","萝卜","土豆","胡萝卜","白菜","芹菜","青椒","番茄","山药","冬瓜","酸菜","粉丝","金针菇")
+    private val chickenBase = listOf("香菇","土豆","青椒","栗子","板栗","番茄","芹菜","木耳","洋葱","青豆","玉米","胡萝卜","山药","莲藕","冬瓜","茶树菇","金针菇","粉条","豆腐","毛豆","豇豆","花生")
+    private val duckBase = listOf("魔芋","土豆","冬瓜","萝卜","青椒","酸菜","香菇","啤酒","莲藕","山药","芋头","豆腐","白菜")
+    private val fishBase = listOf("豆腐","酸菜","番茄","葱","蒜","辣椒","剁椒","萝卜","冬瓜","紫苏","白菜","金针菇","粉丝","木耳","藕","蒜薹","青椒","香菜")
+    private val shrimpBase = listOf("西兰花","芦笋","黄瓜","鸡蛋","豆腐","玉米","豌豆","毛豆","丝瓜","冬瓜","韭菜","芹菜","番茄","蘑菇","腰果")
+    private val vegBase = listOf("上海青","小白菜","菠菜","油麦菜","空心菜","苋菜","生菜","菜心","芥蓝","娃娃菜","大白菜","包菜","西兰花","菜花","芦笋","芹菜","蒜薹","豇豆","四季豆","毛豆","茄子","番茄","黄瓜","丝瓜","冬瓜","苦瓜","西葫芦","土豆","莲藕","山药","胡萝卜","白萝卜","青椒","彩椒","洋葱","豆芽","韭菜","韭黄","香菇","平菇","杏鲍菇","金针菇","木耳","海带","玉米","莴笋","春笋","藕带","秋葵","南瓜","佛手瓜","瓠瓜","芥菜","菜薹","红薯叶")
+    private val beanBase = listOf("豆腐","嫩豆腐","老豆腐","豆干","香干","腐竹","豆皮","千张","百叶","毛豆","黄豆芽","绿豆芽","豌豆","青豆","鸡蛋","鸭蛋","鹌鹑蛋")
+
+    private val porkMethods = listOf("炒","烧","炖","蒸","煎","焖","干煸","酱烧","红烧")
+    private val beefMethods = listOf("炒","烧","炖","煎","焖","水煮","孜然炒")
+    private val lambMethods = listOf("炒","爆炒","烧","炖","焖","孜然炒")
+    private val chickenMethods = listOf("炒","烧","炖","焖","蒸","煎","红烧")
+    private val duckMethods = listOf("烧","炖","焖","炒")
+    private val fishMethods = listOf("清蒸","红烧","香煎","水煮","酸菜炖","剁椒蒸","葱烧")
+    private val shrimpMethods = listOf("炒","白灼","蒜蓉","盐水","香煎")
+    private val vegMethods = listOf("清炒","蒜蓉炒","蚝油炒","炝炒","醋溜","红烧","干煸","上汤")
+    private val beanMethods = listOf("炒","烧","煎","焖","蒸","炖","凉拌")
+
+    private val seasonal = mapOf(
+        1 to listOf("菠菜","白菜","上海青","芥蓝","萝卜","西兰花"),
+        2 to listOf("菠菜","菜心","上海青","芥蓝","生菜","西兰花"),
+        3 to listOf("菠菜","菜心","油麦菜","芹菜","春笋","西兰花"),
+        4 to listOf("油麦菜","上海青","苋菜","芦笋","莴笋","西葫芦"),
+        5 to listOf("空心菜","苋菜","生菜","油麦菜","丝瓜","西兰花"),
+        6 to listOf("空心菜","苋菜","油麦菜","丝瓜","豇豆","黄瓜"),
+        7 to listOf("空心菜","苋菜","丝瓜","豇豆","毛豆","黄瓜"),
+        8 to listOf("空心菜","苋菜","丝瓜","豇豆","毛豆","冬瓜"),
+        9 to listOf("空心菜","油麦菜","上海青","丝瓜","西兰花","芥蓝"),
+        10 to listOf("菠菜","上海青","白菜","芥蓝","西兰花","萝卜"),
+        11 to listOf("菠菜","白菜","上海青","芥蓝","萝卜","西兰花"),
+        12 to listOf("菠菜","白菜","上海青","芥蓝","萝卜","菜心")
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,237 +73,112 @@ class MainActivity : Activity() {
     }
 
     private fun buildShell() {
-        root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(247, 249, 246)) }
+        root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(247,249,246)) }
         body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val scroll = ScrollView(this).apply { addView(body); isFillViewport = true }
-        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        root.addView(bottomNav(), LinearLayout.LayoutParams(-1, dp(68)))
+        root.addView(scroll, LinearLayout.LayoutParams(-1,0,1f))
+        root.addView(bottomNav(), LinearLayout.LayoutParams(-1,dp(66)))
         setContentView(root)
     }
 
     private fun showHome() {
-        currentTab = 0
-        body.removeAllViews()
-        val box = page()
-        val location = TextView(this).apply { text = "⌖ 河南省 · 郑州市  ▾"; textSize = 13f; setTextColor(Color.DKGRAY); setPadding(0, dp(4), 0, dp(8)) }
-        box.addView(location)
-        val title = TextView(this).apply { text = "今天中午吃什么？"; textSize = 31f; setTypeface(null, 1); setTextColor(Color.rgb(25, 90, 50)); gravity = Gravity.CENTER; setPadding(0, dp(14), 0, dp(2)) }
-        box.addView(title)
-        addTextTo(box, "营养均衡 · 时令搭配 · 科学膳食", 15f, Color.GRAY, Gravity.CENTER, 0, 0, 0, 14)
-        box.addView(PlateView(this), LinearLayout.LayoutParams(-1, dp(245)).apply { setMargins(dp(10), dp(4), dp(10), dp(8)) })
-        val btn = Button(this).apply { text = "🎲  随机一桌\n生成今日四菜一汤"; textSize = 17f; setTextColor(Color.WHITE); setBackgroundColor(Color.rgb(55, 165, 91)); setOnClickListener { newMeal(); showMeal() } }
-        box.addView(btn, LinearLayout.LayoutParams(-1, dp(64)).apply { setMargins(dp(4), dp(6), dp(4), dp(12)) })
-        val features = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        listOf("✓\n营养均衡", "🍊\n时令食材", "🐖\n猪肉为主", "♧\n科学搭配").forEach { s ->
-            val t = TextView(this).apply { text = s; gravity = Gravity.CENTER; textSize = 12f; setTextColor(Color.DKGRAY); setPadding(dp(8), dp(8), dp(8), dp(8)) }
-            features.addView(t, LinearLayout.LayoutParams(0, dp(58), 1f))
-        }
-        box.addView(features)
-        addInfoCard(box, "今天的规则", "猪肉作为主要动物蛋白；牛、羊、鸭、鸡、鱼、虾轮换。每天固定一份当季烧青菜 + 一份豆制品/蛋类 + 一汤。")
+        tab=0; body.removeAllViews(); val box=page()
+        addTextTo(box,"⌖ 河南省 · 郑州市  ▾",13f,Color.DKGRAY,Gravity.LEFT,4,4,0,8)
+        addTextTo(box,"今天中午吃什么？",31f,Color.rgb(25,100,55),Gravity.CENTER,0,8,0,2)
+        addTextTo(box,"营养均衡 · 时令搭配 · 科学膳食",15f,Color.GRAY,Gravity.CENTER,0,0,0,10)
+        box.addView(PlateView(this),LinearLayout.LayoutParams(-1,dp(245)).apply{setMargins(dp(10),0,dp(10),dp(8))})
+        val b=Button(this).apply{ text="🎲  随机一桌\n生成今日四菜一汤"; textSize=17f; setTextColor(Color.WHITE); setBackgroundColor(Color.rgb(55,165,91)); setOnClickListener{newMeal();showMeal()} }
+        box.addView(b,LinearLayout.LayoutParams(-1,dp(64)).apply{setMargins(dp(4),6,dp(4),12)})
+        val f=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER}
+        listOf("✓\n营养均衡","🍊\n时令食材","🐖\n猪肉为主","♧\n科学搭配").forEach{t->f.addView(TextView(this).apply{text=t;gravity=Gravity.CENTER;textSize=12f;setTextColor(Color.DKGRAY)},LinearLayout.LayoutParams(0,dp(54),1f))}
+        box.addView(f)
+        info(box,"菜库规模","当前内置超过 1000 道可随机菜品，覆盖猪肉、牛肉、羊肉、鸡、鸭、鱼、虾、蛋类、豆制品、蔬菜和汤品；后续可继续扩到 2000+。")
+        info(box,"随机规则","猪肉为主要动物蛋白；牛羊、鸡鸭、鱼虾轮换；每天至少一份当季绿叶菜，并搭配豆制品/蛋类和汤。")
         body.addView(box)
     }
 
-    private fun showMeal() {
-        currentTab = 0
-        body.removeAllViews()
-        if (meal.isEmpty()) newMeal()
-        val box = page()
-        val top = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        addTextTo(top, "‹", 30f, Color.DKGRAY, Gravity.CENTER, 0, 0, 16, 0).setOnClickListener { showHome() }
-        val title = TextView(this).apply { text = "今日午餐"; textSize = 23f; setTypeface(null, 1); gravity = Gravity.CENTER }
-        top.addView(title, LinearLayout.LayoutParams(0, dp(50), 1f))
-        addTextTo(top, "↻", 27f, Color.DKGRAY, Gravity.CENTER, 16, 0, 0, 0).setOnClickListener { newMeal(); showMeal() }
+    private fun showMeal(){
+        tab=0; body.removeAllViews(); if(meal.isEmpty())newMeal(); val box=page()
+        val top=LinearLayout(this).apply{gravity=Gravity.CENTER_VERTICAL}
+        addTextTo(top,"‹",30f,Color.DKGRAY,Gravity.CENTER,0,0,16,0).setOnClickListener{showHome()}
+        addTextTo(top,"今日午餐",23f,Color.DKGRAY,Gravity.CENTER,0,0,0,0).layoutParams=LinearLayout.LayoutParams(0,52.dp(),1f)
+        addTextTo(top,"↻",27f,Color.DKGRAY,Gravity.CENTER,16,0,0,0).setOnClickListener{newMeal();showMeal()}
         box.addView(top)
-        val date = SimpleDateFormat("M月d日  EEEE", Locale.CHINA).format(Calendar.getInstance().time)
-        addTextTo(box, "$date    时令：${seasonName()}", 13f, Color.GRAY, Gravity.LEFT, 4, 0, 0, 8)
-        addTextTo(box, "🍃  今日四菜一汤", 21f, Color.rgb(30, 110, 60), Gravity.CENTER, 0, 0, 0, 10)
-        meal.forEachIndexed { i, dish ->
-            val label = when (i) { 0 -> "猪肉主菜"; 1 -> "动物蛋白轮换"; 2 -> "豆制品 / 蛋类"; 3 -> "当季烧青菜"; else -> "汤品" }
-            addDishCard(box, dish, label)
-        }
-        val score = nutritionScore()
-        addScoreCard(box, score)
-        val change = Button(this).apply { text = "换一桌  ·  无尽随机"; textSize = 16f; setOnClickListener { newMeal(); showMeal() } }
-        box.addView(change, LinearLayout.LayoutParams(-1, dp(52)).apply { setMargins(0, dp(14), 0, dp(14)) })
+        addTextTo(box,SimpleDateFormat("M月d日  EEEE",Locale.CHINA).format(Calendar.getInstance().time)+"    时令：${seasonName()}",13f,Color.GRAY,Gravity.LEFT,4,0,0,8)
+        addTextTo(box,"🍃  今日四菜一汤",21f,Color.rgb(30,110,60),Gravity.CENTER,0,0,0,10)
+        meal.forEachIndexed{i,d->addDishCard(box,d,when(i){0->"猪肉主菜";1->"动物蛋白轮换";2->"豆制品 / 蛋类";3->"当季烧青菜";else->"汤品"})}
+        info(box,"营养均衡度","${score()} 分  · 蛋白质、蔬菜、膳食纤维、钙和铁综合评价")
+        val change=Button(this).apply{text="换一桌  ·  无尽随机";textSize=16f;setOnClickListener{newMeal();showMeal()}}
+        box.addView(change,LinearLayout.LayoutParams(-1,52.dp()).apply{setMargins(0,14,0,14)})
         body.addView(box)
     }
 
-    private fun showNutrition() {
-        currentTab = 1
-        body.removeAllViews()
-        val box = page()
-        addTextTo(box, "营养分析", 25f, Color.rgb(30, 70, 45), Gravity.CENTER, 0, 10, 0, 12)
-        if (meal.isEmpty()) newMeal()
-        val score = nutritionScore()
-        val gauge = TextView(this).apply { text = "$score\n营养均衡度"; textSize = 28f; setTypeface(null, 1); gravity = Gravity.CENTER; setTextColor(Color.rgb(45, 145, 78)); setPadding(0, dp(18), 0, dp(18)) }
-        box.addView(gauge, LinearLayout.LayoutParams(-1, dp(125)))
-        listOf("蛋白质" to if (meal.any { it.protein >= 3 }) "充足" else "良好", "膳食纤维" to if (meal.sumOf { it.fiber } >= 8) "充足" else "良好", "维生素" to if (meal.sumOf { it.vegetables } >= 8) "充足" else "良好", "钙" to if (meal.sumOf { it.calcium } >= 6) "充足" else "良好", "铁" to if (meal.sumOf { it.iron } >= 6) "良好" else "适中").forEach { (a,b) ->
-            val row = LinearLayout(this).apply { setPadding(dp(14), dp(9), dp(14), dp(9)); gravity = Gravity.CENTER_VERTICAL) }
-            addTextTo(row, a, 15f, Color.DKGRAY, Gravity.LEFT, 0, 0, 0, 0).layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
-            addTextTo(row, b, 14f, Color.rgb(55, 150, 80), Gravity.RIGHT, 0, 0, 0, 0)
-            box.addView(row)
-        }
-        addInfoCard(box, "搭配评价", "今天的午餐采用“猪肉主菜 + 轮换动物蛋白 + 豆制品/蛋类 + 当季绿叶菜 + 汤”的结构。分数用于帮助搭配，不代替个体化营养建议。")
-        addInfoCard(box, "来源结构", "猪肉、牛羊肉、鸡鸭、鱼虾、蛋类、豆制品、时令蔬菜和菌菇轮换，避免连续多天只吃同一种肉。")
+    private fun showNutrition(){
+        tab=1;body.removeAllViews();if(meal.isEmpty())newMeal();val box=page()
+        addTextTo(box,"营养分析",25f,Color.rgb(30,70,45),Gravity.CENTER,0,10,0,12)
+        addTextTo(box,"${score()}\n营养均衡度",30f,Color.rgb(45,145,78),Gravity.CENTER,0,8,0,12)
+        val rows=listOf("蛋白质" to if(meal.sumOf{it.protein}>=14)"充足" else "良好","膳食纤维" to if(meal.sumOf{it.fiber}>=9)"充足" else "良好","维生素" to if(meal.sumOf{it.veg}>=10)"充足" else "良好","钙" to if(meal.sumOf{it.calcium}>=6)"充足" else "良好","铁" to if(meal.sumOf{it.iron}>=7)"充足" else "良好")
+        rows.forEach{(a,b)->val r=LinearLayout(this).apply{setPadding(14,9,14,9);gravity=Gravity.CENTER_VERTICAL};addTextTo(r,a,15f,Color.DKGRAY,Gravity.LEFT,0,0,0,0).layoutParams=LinearLayout.LayoutParams(0,-2,1f);addTextTo(r,b,14f,Color.rgb(55,150,80),Gravity.RIGHT,0,0,0,0);box.addView(r)}
+        info(box,"搭配评价","猪肉主菜 + 牛羊鸡鸭鱼虾轮换 + 豆制品/蛋类 + 当季绿叶菜 + 汤，避免连续多天单一肉类。")
+        info(box,"说明","分数用于午餐搭配参考，不代替个体化营养建议。")
         body.addView(box)
     }
 
-    private fun showSeasonal() {
-        currentTab = 2
-        body.removeAllViews()
-        val box = page()
-        addTextTo(box, "时令蔬菜", 25f, Color.rgb(30, 70, 45), Gravity.CENTER, 0, 10, 0, 6)
-        addTextTo(box, "河南当前时令：${seasonName()}", 14f, Color.GRAY, Gravity.CENTER, 0, 0, 0, 14)
-        val names = seasonal[Calendar.getInstance().get(Calendar.MONTH)+1] ?: seasonal[8]!!
-        val grid = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        names.forEach { n ->
-            val card = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)); setBackgroundColor(Color.WHITE) }
-            card.addView(VegView(this, n), LinearLayout.LayoutParams(dp(78), dp(70)))
-            addTextTo(card, "$n\n适合：清炒、蒜蓉、上汤、搭配肉类", 15f, Color.DKGRAY, Gravity.LEFT, 10, 0, 0, 0)
-            grid.addView(card, LinearLayout.LayoutParams(-1, dp(86)).apply { setMargins(0, dp(4), 0, 0) })
-        }
-        box.addView(grid)
-        addInfoCard(box, "时令原则", "优先选择本季蔬菜，保证每天至少一份绿色蔬菜；同一周尽量不重复同一种烧青菜。")
+    private fun showSeasonal(){
+        tab=2;body.removeAllViews();val box=page();addTextTo(box,"时令蔬菜",25f,Color.rgb(30,70,45),Gravity.CENTER,0,10,0,6);addTextTo(box,"河南当前时令：${seasonName()}",14f,Color.GRAY,Gravity.CENTER,0,0,0,14)
+        seasonal[month()]!!.forEach{n->val c=LinearLayout(this).apply{gravity=Gravity.CENTER_VERTICAL;setPadding(12,8,12,8);setBackgroundColor(Color.WHITE)};c.addView(VegView(this,n),LinearLayout.LayoutParams(78.dp(),70.dp()));addTextTo(c,"$n\n适合：清炒、蒜蓉、上汤、搭配肉类",15f,Color.DKGRAY,Gravity.LEFT,10,0,0,0);box.addView(c,LinearLayout.LayoutParams(-1,86.dp()).apply{setMargins(0,4,0,0)})}
+        info(box,"时令原则","优先当季蔬菜，每餐保证绿色蔬菜，并尽量避免连续多餐重复同一种烧青菜。")
         body.addView(box)
     }
 
-    private fun showDetail(dish: Dish) {
-        selected = dish
-        body.removeAllViews()
-        val box = page()
-        val top = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        addTextTo(top, "‹", 30f, Color.DKGRAY, Gravity.CENTER, 0, 0, 16, 0).setOnClickListener { showMeal() }
-        addTextTo(top, dish.name, 22f, Color.rgb(35, 35, 35), Gravity.CENTER, 0, 0, 0, 0).layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
-        addTextTo(top, "☆", 28f, Color.rgb(230, 170, 30), Gravity.CENTER, 16, 0, 0, 0)
-        box.addView(top)
-        box.addView(DishArtView(this, dish), LinearLayout.LayoutParams(-1, dp(230)).apply { setMargins(dp(6), 0, dp(6), dp(8)) })
-        addTextTo(box, "${typeLabel(dish.type)}   ·   家常做法", 13f, Color.GRAY, Gravity.LEFT, 8, 0, 0, 6)
-        addInfoCard(box, "食材准备", dish.ingredients)
-        addInfoCard(box, "怎么做", stepsFor(dish))
-        addInfoCard(box, "营养特点", "蛋白质 ${if (dish.protein >= 3) "较高" else "适中"} · 蔬菜贡献 ${dish.vegetables} · 膳食纤维 ${dish.fiber} · 钙 ${dish.calcium} · 铁 ${dish.iron}")
-        val tip = TextView(this).apply { text = "小贴士：家常午餐少油少盐即可；肉类彻底加热，海鲜和蛋类注意熟透。"; textSize = 13f; setTextColor(Color.GRAY); setPadding(dp(12), dp(12), dp(12), dp(18)) }
-        box.addView(tip)
-        body.addView(box)
+    private fun showDetail(d:Dish){body.removeAllViews();val box=page();val top=LinearLayout(this).apply{gravity=Gravity.CENTER_VERTICAL};addTextTo(top,"‹",30f,Color.DKGRAY,Gravity.CENTER,0,0,16,0).setOnClickListener{showMeal()};addTextTo(top,d.name,22f,Color.DKGRAY,Gravity.CENTER,0,0,0,0).layoutParams=LinearLayout.LayoutParams(0,52.dp(),1f);addTextTo(top,"☆",28f,Color.rgb(230,170,30),Gravity.CENTER,16,0,0,0);box.addView(top);box.addView(DishArtView(this,d),LinearLayout.LayoutParams(-1,230.dp()).apply{setMargins(6,0,6,8)});addTextTo(box,"${typeLabel(d.type)} · 家常做法",13f,Color.GRAY,Gravity.LEFT,8,0,0,6);info(box,"食材准备",ingredients(d));info(box,"怎么做",steps(d));info(box,"营养特点","蛋白质 ${if(d.protein>=3)"较高" else "适中"} · 蔬菜贡献 ${d.veg} · 膳食纤维 ${d.fiber} · 钙 ${d.calcium} · 铁 ${d.iron}");info(box,"小贴士","少油少盐即可；肉类、鱼虾、蛋类彻底加热。") ;body.addView(box)}
+
+    private fun newMeal(){
+        val green=seasonal[month()]!!.random();val main=porkDish();val rotate=rotatingDish();val bean=beanDish();val soup=soupDish();meal=mutableListOf(main,rotate,bean,greenDish(green),soup)
     }
 
-    private fun newMeal() {
-        val month = Calendar.getInstance().get(Calendar.MONTH) + 1
-        val seasonalNames = seasonal[month] ?: seasonal[8]!!
-        val greenName = vegetableNames.filter { n -> seasonalNames.any { s -> n.contains(s) } }.ifEmpty { vegetableNames }.random()
-        val green = makeDish(greenName, "green")
-        val main = makeDish(porkNames.random(), "pork")
-        val rotating = makeDish(rotatingNames.random().substringBefore("|"), rotatingNames.random().substringAfter("|"))
-        val bean = makeDish(beanEggNames.random(), if (beanEggNames.random().contains("鸡蛋")) "egg" else "bean")
-        val soup = makeDish(soupNames.random(), "soup")
-        meal = mutableListOf(main, rotating, bean, green, soup)
+    private fun allNames(base:List<String>,methods:List<String>,prefix:String):List<String>{
+        val out=ArrayList<String>();for(m in methods)for(x in base)out.add("$m$prefix$x");return out.distinct()
     }
 
-    private fun makeDish(name: String, type: String): Dish {
-        val veg = if (type in listOf("green","bean","egg")) 3 else if (name.contains("番茄|青椒|土豆|洋葱|芹菜|豆角|白菜|冬瓜|丝瓜|蘑菇|西兰花|黄瓜|藕|萝卜|山药".toRegex())) 1 else 0
-        val protein = when (type) { "pork","beef","lamb","duck","chicken","fish","shrimp" -> 4; "egg","bean" -> 2; "soup" -> if (name.contains("排骨|鸡|瘦肉|虾|蛋")) 2 else 1; else -> 0 }
-        val fiber = when (type) { "green" -> 4; "bean","egg" -> 2; else -> veg }
-        val calcium = when { name.contains("豆腐|豆干|腐竹") -> 3; name.contains("虾皮|紫菜") -> 2; type == "green" -> 1; else -> 0 }
-        val iron = when { type in listOf("pork","beef","lamb") -> 2; type == "green" -> 2; type == "bean" -> 2; else -> 1 }
-        return Dish(name, type, ingredientsFor(name, type), protein, veg, fiber, calcium, iron)
+    private fun porkDish():Dish{val n=allNames(porkBase,porkMethods,"猪肉").random();return make(n,"pork",n.removePrefix("炒猪肉").removePrefix("烧猪肉"))}
+    private fun rotatingDish():Dish{
+        val choices=listOf("beef","lamb","chicken","duck","fish","shrimp");val t=choices.random();val data=when(t){"beef"->beefBase to beefMethods;"lamb"->lambBase to lambMethods;"chicken"->chickenBase to chickenMethods;"duck"->duckBase to duckMethods;"fish"->fishBase to fishMethods;else->shrimpBase to shrimpMethods};val n=allNames(data.first,data.second,proteinPrefix(t)).random();return make(n,t,n)
+    }
+    private fun beanDish():Dish{val n=allNames(beanBase,beanMethods,"").random();return make(n,if(n.contains("鸡蛋|鸭蛋|鹌鹑蛋".toRegex()))"egg" else "bean",n)}
+    private fun greenDish(g:String):Dish{val n=vegMethods.random()+g;return make(n,"green",g)}
+    private fun soupDish():Dish{val soups=listOf("番茄蛋花汤","紫菜蛋花汤","冬瓜排骨汤","菌菇豆腐汤","萝卜瘦肉汤","青菜豆腐汤","冬瓜虾皮汤","丝瓜蛋汤","菠菜蛋花汤","紫菜虾皮汤","玉米排骨汤","山药排骨汤","莲藕排骨汤","海带排骨汤","冬瓜丸子汤","白菜豆腐汤","酸辣汤","三鲜汤","菌菇鸡蛋汤","丝瓜虾仁汤","番茄豆腐汤","毛豆蛋汤","鱼头豆腐汤","菌菇鸡汤","萝卜牛腩汤");return make(soups.random(),"soup","")}
+
+    private fun proteinPrefix(t:String)=when(t){"beef"->"牛肉";"lamb"->"羊肉";"chicken"->"鸡肉";"duck"->"鸭肉";"fish"->"鱼";else->"虾"}
+
+    private fun make(name:String,type:String,ingredient:String):Dish{
+        val protein=when(type){"pork","beef","lamb","chicken","duck","fish","shrimp"->4;"bean","egg"->2;"soup"->if(name.contains("排骨|鸡|瘦肉|虾|蛋|牛腩|鱼头".toRegex()))2 else 1;else->0}
+        val veg=when(type){"green"->4;"bean","egg"->3;else->if(name.contains("青椒|番茄|芹菜|土豆|白菜|冬瓜|丝瓜|西兰花|洋葱|豆角|木耳|蘑菇|萝卜|山药|莲藕|黄瓜".toRegex()))2 else 0}
+        val fiber=if(type=="green")4 else if(type=="bean"||type=="egg")2 else veg
+        val calcium=if(name.contains("豆腐|豆干|腐竹|豆皮|千张|百叶|虾皮|紫菜".toRegex()))3 else if(type=="green")1 else 0
+        val iron=if(type in listOf("pork","beef","lamb"))2 else if(type=="green"||type=="bean")2 else 1
+        return Dish(name,type,ingredient,protein,veg,fiber,calcium,iron)
     }
 
-    private fun ingredientsFor(name: String, type: String): String = when {
-        type == "pork" -> "猪肉、葱姜蒜、应季蔬菜、食用油、生抽、少量老抽"
-        type == "beef" -> "牛肉、洋葱/芹菜、葱姜蒜、生抽、黑胡椒"
-        type == "lamb" -> "羊肉、洋葱、香菜、孜然、辣椒面"
-        type == "duck" -> "鸭肉、姜、青椒、葱、生抽"
-        type == "chicken" -> "鸡肉、葱姜蒜、时令蔬菜、生抽"
-        type == "fish" -> "鲜鱼、姜、葱、蒸鱼豉油或生抽"
-        type == "shrimp" -> "鲜虾/虾仁、葱姜、时令蔬菜、少量食用油"
-        type == "bean" -> "豆腐/豆干/腐竹、葱姜蒜、时令蔬菜、生抽"
-        type == "egg" -> "鸡蛋、时令蔬菜、葱花、少量食用油"
-        type == "green" -> "当季绿叶菜、蒜、少量食用油、盐"
-        else -> "当季蔬菜、蛋/肉/菌菇、葱姜、少量盐"
-    }
+    private fun score():Int{if(meal.isEmpty())return 90;var s=82;s+=if(meal.count{it.type in listOf("pork","beef","lamb","chicken","duck","fish","shrimp")}==2)6 else 3;s+=if(meal.any{it.type=="green"})4 else 0;s+=if(meal.any{it.type=="bean"||it.type=="egg"})3 else 0;s+=if(meal.sumOf{it.fiber}>=9)3 else 0;return s.coerceIn(78,98)}
 
-    private fun stepsFor(d: Dish): String = when {
-        d.type == "green" -> "1. 蔬菜洗净切段，蒜切末。\n2. 锅烧热放少量油，下蒜末炒香。\n3. 放蔬菜大火翻炒至断生。\n4. 加少量盐快速翻匀出锅，保持脆嫩。"
-        d.type == "fish" -> "1. 鱼处理干净，两面划花刀。\n2. 放姜葱去腥，按菜式煎、烧或上汽蒸熟。\n3. 加生抽/蒸鱼豉油调味。\n4. 确认鱼肉完全熟透后出锅。"
-        d.type == "shrimp" -> "1. 虾仁去虾线并冲洗。\n2. 热锅少油，先把虾仁炒至变色。\n3. 加蔬菜或鸡蛋快速翻炒。\n4. 少量盐调味，炒熟立即出锅。"
-        d.type == "soup" -> "1. 主料洗净切块。\n2. 需要焯水的肉类先焯水。\n3. 加足量热水煮开，小火炖至食材熟软。\n4. 最后放盐，汤品尽量清淡。"
-        d.name.contains("红烧|炖|焖|烧") -> "1. 肉类切块并焯水，蔬菜切块。\n2. 锅中少油煸香葱姜蒜，下主料翻炒。\n3. 加生抽、少量老抽和热水，小火焖熟。\n4. 开大火收汁，注意少盐少油。"
-        d.name.contains("蒸") -> "1. 食材洗净切配并调味。\n2. 盘中铺姜葱或蔬菜。\n3. 水开后上锅蒸至中心完全熟透。\n4. 出锅后淋少量生抽或热油即可。"
-        d.name.contains("凉拌") -> "1. 食材洗净处理，必要时焯熟。\n2. 放凉后控干水分。\n3. 加蒜末、生抽、醋等调味。\n4. 拌匀即可，少放油盐。"
-        else -> "1. 主料切丝/片，蔬菜洗净切配。\n2. 肉类先用少量淀粉抓匀，热锅少油滑熟盛出。\n3. 下蔬菜大火炒至断生，倒回主料。\n4. 加生抽和少量盐快速翻匀出锅。"
-    }
+    private fun ingredients(d:Dish)=when(d.type){"pork"->"猪肉、${d.ingredient}、葱姜蒜、生抽、少量食用油";"beef"->"牛肉、${d.ingredient}、葱姜蒜、生抽、黑胡椒";"lamb"->"羊肉、${d.ingredient}、大葱、孜然、香菜";"chicken"->"鸡肉、${d.ingredient}、葱姜蒜、生抽";"duck"->"鸭肉、${d.ingredient}、姜、葱、生抽";"fish"->"鲜鱼、${d.ingredient}、姜、葱、生抽";"shrimp"->"鲜虾、${d.ingredient}、葱姜、少量食用油";"bean"->"豆制品、${d.ingredient}、葱姜蒜、生抽";"egg"->"鸡蛋/鸭蛋、${d.ingredient}、葱花、少量食用油";"green"->"${d.ingredient}、蒜、少量食用油、盐";else->"当季蔬菜、蛋/肉、菌菇、葱姜"}
 
-    private fun nutritionScore(): Int {
-        if (meal.isEmpty()) return 90
-        var s = 80
-        if (meal.count { it.protein >= 3 } >= 2) s += 5
-        if (meal.any { it.type == "green" }) s += 4
-        if (meal.any { it.type == "bean" || it.type == "egg" }) s += 3
-        if (meal.any { it.type == "soup" }) s += 2
-        if (meal.map { it.type }.distinct().size >= 4) s += 3
-        return min(98, max(80, s))
-    }
+    private fun steps(d:Dish)=when(d.type){"green"->"1. 洗净切段。\n2. 锅热放少量油，下蒜末爆香。\n3. 放入蔬菜大火快炒。\n4. 加盐调味，断生即可出锅。";"fish"->"1. 鱼处理洗净并擦干。\n2. 姜葱去腥。\n3. 按菜名选择清蒸、红烧或水煮。\n4. 鱼肉完全熟透后出锅。";"shrimp"->"1. 虾去虾线洗净。\n2. 姜葱去腥。\n3. 大火快速炒至变色并完全熟透。\n4. 少盐调味。";"soup"->"1. 食材洗净切块。\n2. 冷水或热水下锅。\n3. 小火煮至食材熟透。\n4. 最后少盐调味。";else->"1. 肉类切片或切块，加入少量生抽腌制。\n2. 热锅少油，先将肉类炒至变色。\n3. 加入${d.ingredient}及葱姜蒜翻炒或焖炖。\n4. 调味后确保肉类完全熟透即可出锅。"}
 
-    private fun addScoreCard(parent: LinearLayout, score: Int) {
-        val card = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(14), dp(16), dp(14)); setBackgroundColor(Color.WHITE) }
-        addTextTo(card, "今日营养搭配  $score / 100", 18f, Color.rgb(35, 125, 65), Gravity.LEFT, 0, 0, 0, 6)
-        addTextTo(card, "蛋白质 充足   ·   膳食纤维 充足   ·   维生素 充足", 13f, Color.DKGRAY, Gravity.LEFT, 0, 0, 0, 2)
-        addTextTo(card, "荤素比例合理，猪肉主菜 + 动物蛋白轮换 + 豆制品 + 时令青菜 + 汤。", 12f, Color.GRAY, Gravity.LEFT, 0, 0, 0, 0)
-        parent.addView(card, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(8), 0, 0) })
-    }
+    private fun typeLabel(t:String)=when(t){"pork"->"猪肉主菜";"beef"->"牛肉";"lamb"->"羊肉";"chicken"->"鸡肉";"duck"->"鸭肉";"fish"->"鱼类";"shrimp"->"虾类";"bean"->"豆制品";"egg"->"蛋类";"green"->"时令蔬菜";else->"汤品"}
+    private fun seasonName()=when(month()){3,4,5->"春季";6,7,8->"夏季";9,10,11->"秋季";else->"冬季"}
+    private fun month()=Calendar.getInstance().get(Calendar.MONTH)+1
 
-    private fun addDishCard(parent: LinearLayout, dish: Dish, label: String) {
-        val card = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(10), dp(8), dp(8), dp(8)); setBackgroundColor(Color.WHITE); setOnClickListener { showDetail(dish) } }
-        card.addView(DishArtView(this, dish), LinearLayout.LayoutParams(dp(92), dp(82)))
-        val text = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), 0, 0, 0) }
-        addTextTo(text, dish.name, 17f, Color.rgb(35, 35, 35), Gravity.LEFT, 0, 0, 0, 2)
-        addTextTo(text, label, 11f, Color.rgb(50, 145, 75), Gravity.LEFT, 0, 0, 0, 4)
-        addTextTo(text, "${dish.ingredients.take(28)}…", 11f, Color.GRAY, Gravity.LEFT, 0, 0, 0, 0)
-        card.addView(text, LinearLayout.LayoutParams(0, -2, 1f))
-        addTextTo(card, "›", 26f, Color.LTGRAY, Gravity.CENTER, 4, 0, 0, 0)
-        parent.addView(card, LinearLayout.LayoutParams(-1, dp(92)).apply { setMargins(0, dp(5), 0, 0) })
-    }
+    private fun page()=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(16),dp(8),dp(16),dp(18))}
+    private fun info(parent:LinearLayout,title:String,text:String){val c=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(14),dp(10),dp(14),dp(10));setBackgroundColor(Color.WHITE)};addTextTo(c,title,16f,Color.rgb(35,90,50),Gravity.LEFT,0,0,0,5);addTextTo(c,text,13f,Color.DKGRAY,Gravity.LEFT,0,0,0,0);parent.addView(c,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(6),0,0)})}
+    private fun addDishCard(parent:LinearLayout,d:Dish,label:String){val c=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(dp(8),dp(8),dp(8),dp(8));setBackgroundColor(Color.WHITE);setOnClickListener{showDetail(d)}};c.addView(DishArtView(this,d),LinearLayout.LayoutParams(dp(92),dp(78)));val r=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(10),0,0,0)};addTextTo(r,d.name,17f,Color.rgb(35,35,35),Gravity.LEFT,0,0,0,4);addTextTo(r,label,12f,Color.rgb(60,145,80),Gravity.LEFT,0,0,0,3);addTextTo(r,"蛋白质 ${if(d.protein>=3)"较高" else "适中"} · 点击查看做法  ›",12f,Color.GRAY,Gravity.LEFT,0,0,0,0);c.addView(r,LinearLayout.LayoutParams(0,-2,1f));parent.addView(c,LinearLayout.LayoutParams(-1,dp(92)).apply{setMargins(0,dp(4),0,0)})}
+    private fun addTextTo(p:LinearLayout,text:String,size:Float,color:Int,gravity:Int,l:Int,t:Int,r:Int,b:Int):TextView{val v=TextView(this).apply{this.text=text;textSize=size;setTextColor(color);this.gravity=gravity;setPadding(dp(l),dp(t),dp(r),dp(b))};p.addView(v);return v}
 
-    private fun addInfoCard(parent: LinearLayout, title: String, text: String) {
-        val card = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(14), dp(12), dp(14), dp(12)); setBackgroundColor(Color.WHITE) }
-        addTextTo(card, title, 16f, Color.rgb(40, 75, 48), Gravity.LEFT, 0, 0, 0, 5)
-        addTextTo(card, text, 13f, Color.rgb(90, 90, 90), Gravity.LEFT, 0, 0, 0, 0)
-        parent.addView(card, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(8), 0, 0) })
-    }
+    private fun bottomNav():LinearLayout{val n=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER;setBackgroundColor(Color.WHITE)};listOf("⌂\n今日午餐","▣\n营养分析","♧\n时令蔬菜","☆\n收藏").forEachIndexed{i,s->n.addView(TextView(this).apply{text=s;gravity=Gravity.CENTER;textSize=12f;setTextColor(if(i==tab)Color.rgb(40,150,75) else Color.GRAY);setOnClickListener{when(i){0->showHome();1->showNutrition();2->showSeasonal();else->showMeal()}}},LinearLayout.LayoutParams(0,-1,1f))};return n}
+    private fun dp(v:Int)= (v*resources.displayMetrics.density).toInt()
 
-    private fun page() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(14), dp(16), dp(20)) }
-
-    private fun bottomNav(): LinearLayout {
-        val nav = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER; setBackgroundColor(Color.WHITE) }
-        val items = listOf("⌂\n今天午餐", "▣\n营养", "♧\n时令", "☆\n收藏")
-        items.forEachIndexed { i, label ->
-            val t = TextView(this).apply { text = label; textSize = 11f; gravity = Gravity.CENTER; setTextColor(if (i == 0) Color.rgb(45, 155, 78) else Color.GRAY); setOnClickListener { when(i) { 0 -> { if (meal.isEmpty()) newMeal(); showMeal() }; 1 -> showNutrition(); 2 -> showSeasonal(); else -> Toast.makeText(this@MainActivity, "收藏功能下一版加入", Toast.LENGTH_SHORT).show() } } }
-            nav.addView(t, LinearLayout.LayoutParams(0, -1, 1f))
-        }
-        return nav
-    }
-
-    private fun addTextTo(p: LinearLayout, s: String, size: Float, color: Int, gravity: Int, l: Int, t: Int, r: Int, b: Int): TextView {
-        val v = TextView(this).apply { text = s; textSize = size; setTextColor(color); this.gravity = gravity; setPadding(dp(l), dp(t), dp(r), dp(b)) }
-        p.addView(v)
-        return v
-    }
-
-    private fun typeLabel(t: String) = when(t) { "pork" -> "猪肉"; "beef" -> "牛肉"; "lamb" -> "羊肉"; "duck" -> "鸭肉"; "chicken" -> "鸡肉"; "fish" -> "鱼类"; "shrimp" -> "虾类"; "bean" -> "豆制品"; "egg" -> "蛋类"; "green" -> "时令蔬菜"; else -> "汤品" }
-    private fun seasonName() = when(Calendar.getInstance().get(Calendar.MONTH)+1) { 3,4,5 -> "春季"; 6,7,8 -> "夏季"; 9,10,11 -> "秋季"; else -> "冬季" }
-    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
-
-    class PlateView(c: android.content.Context) : View(c) {
-        private val p = Paint(3)
-        override fun onDraw(c: Canvas) { val w=width.toFloat(); val h=height.toFloat(); p.color=Color.rgb(237,248,228); c.drawRoundRect(RectF(4f,8f,w-4f,h-8f),34f,34f,p); p.color=Color.WHITE; c.drawOval(RectF(w*.12f,h*.12f,w*.88f,h*.88f),p); p.color=Color.rgb(255,244,210); c.drawOval(RectF(w*.23f,h*.27f,w*.62f,h*.72f),p); p.color=Color.rgb(238,185,70); c.drawOval(RectF(w*.27f,h*.31f,w*.58f,h*.65f),p); p.color=Color.rgb(70,160,80); c.drawCircle(w*.68f,h*.42f,h*.13f,p); c.drawCircle(w*.72f,h*.58f,h*.12f,p); p.color=Color.rgb(150,90,45); c.drawOval(RectF(w*.48f,h*.58f,w*.78f,h*.78f),p); p.color=Color.rgb(248,220,185); c.drawCircle(w*.72f,h*.33f,h*.08f,p) }
-    }
-
-    class VegView(c: android.content.Context, private val name: String) : View(c) {
-        private val p=Paint(3)
-        override fun onDraw(c:Canvas){ p.color=Color.rgb(235,247,231); c.drawRoundRect(RectF(3f,3f,width-3f,height-3f),20f,20f,p); p.color=Color.rgb(75,170,85); repeat(5){ i -> c.drawOval(RectF(width*.25f+i*3,height*.25f-i*2,width*.58f+i*2,height*.7f),p) }; p.color=Color.rgb(70,120,65); c.drawRect(width*.48f,height*.45f,width*.53f,height*.82f,p) }
-    }
-
-    class DishArtView(c: android.content.Context, private val dish: Dish) : View(c) {
-        private val p=Paint(3)
-        override fun onDraw(c:Canvas){ p.color=Color.rgb(248,241,227); c.drawRoundRect(RectF(2f,2f,width-2f,height-2f),18f,18f,p); p.color=Color.WHITE; c.drawOval(RectF(width*.08f,height*.12f,width*.92f,height*.88f),p); val base=when(dish.type){"pork"->Color.rgb(190,90,55);"beef"->Color.rgb(145,65,45);"lamb"->Color.rgb(165,80,60);"duck"->Color.rgb(125,75,50);"chicken"->Color.rgb(220,165,70);"fish"->Color.rgb(210,170,105);"shrimp"->Color.rgb(235,115,95);"bean"->Color.rgb(180,115,70);"egg"->Color.rgb(240,190,60);"green"->Color.rgb(65,155,75);else->Color.rgb(220,225,210)}; p.color=base; for(i in 0..5){ val x=width*.25f+(i%3)*width*.18f; val y=height*.32f+(i/3)*height*.22f; c.drawCircle(x,y,min(width,height)*.10f,p) }; p.color=Color.rgb(70,140,65); if(dish.type in listOf("green","pork","beef","chicken","fish","shrimp")){ c.drawCircle(width*.70f,height*.28f,min(width,height)*.07f,p); c.drawCircle(width*.75f,height*.63f,min(width,height)*.06f,p) } }
-    }
+    class PlateView(c:android.content.Context):View(c){private val p=Paint(1);override fun onDraw(x:Canvas){super.onDraw(x);p.color=Color.WHITE;x.drawRoundRect(RectF(40f,18f,width-40f,height-10f),32f,32f,p);p.color=Color.rgb(218,236,210);x.drawCircle(width/2f,height/2f,82f,p);p.color=Color.rgb(85,165,82);x.drawCircle(width/2f-55,height/2f-5,32f,p);p.color=Color.rgb(210,145,70);x.drawCircle(width/2f+55,height/2f-8,35f,p);p.color=Color.rgb(235,190,80);x.drawCircle(width/2f,height/2f+55,30f,p);p.color=Color.rgb(90,165,110);x.drawCircle(width/2f+5,height/2f-65,26f,p)}}
+    class VegView(c:android.content.Context,val n:String):View(c){private val p=Paint(1);override fun onDraw(x:Canvas){p.color=Color.rgb(232,246,226);x.drawRoundRect(RectF(2f,2f,width-2f,height-2f),20f,20f,p);p.color=Color.rgb(70,160,80);x.drawCircle(width/2f,height/2f,22f,p)}}
+    class DishArtView(c:android.content.Context,val d:Dish):View(c){private val p=Paint(1);override fun onDraw(x:Canvas){p.color=Color.rgb(245,238,220);x.drawRoundRect(RectF(2f,2f,width-2f,height-2f),20f,20f,p);p.color=when(d.type){"green"->Color.rgb(75,165,80);"pork"->Color.rgb(190,100,70);"beef","lamb"->Color.rgb(150,70,55);"fish","shrimp"->Color.rgb(75,145,175);"bean","egg"->Color.rgb(215,170,70);else->Color.rgb(150,175,110)};x.drawCircle(width/2f,height/2f,27f,p);p.color=Color.WHITE;x.drawCircle(width/2f,height/2f,14f,p)}}
 }
