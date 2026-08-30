@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
           for a, b in {
@@ -41,6 +42,7 @@ jobs:
               'score.text =': 'scoreView.text ='
           }.items():
               s = s.replace(a, b)
+          s = re.sub(r'apply \{ text = (.*?);', r'apply { setText(\1);', s)
           lines = []
           for line in s.splitlines():
               if 'scoreView.text =' in line:
@@ -49,9 +51,6 @@ jobs:
               lines.append(line)
           p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
-
-      - name: Show Kotlin lines around compiler error
-        run: nl -ba app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt | sed -n '124,134p'
 
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
