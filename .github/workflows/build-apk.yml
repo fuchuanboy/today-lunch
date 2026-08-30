@@ -24,6 +24,19 @@ jobs:
         with:
           gradle-version: '8.10'
 
+      - name: Fix Kotlin string interpolation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('$vegetable焖至断生', '${vegetable}焖至断生')
+          s = s.replace('$vegetable快速翻炒', '${vegetable}快速翻炒')
+          s = s.replace('$green洗净沥干', '${green}洗净沥干')
+          s = s.replace('$green快速翻炒', '${green}快速翻炒')
+          p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
 
