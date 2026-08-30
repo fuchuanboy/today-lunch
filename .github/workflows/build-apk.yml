@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
           for a, b in {
@@ -41,7 +42,13 @@ jobs:
               'score.text =': 'scoreView.text ='
           }.items():
               s = s.replace(a, b)
-          p.write_text(s, encoding='utf-8')
+          lines = []
+          for line in s.splitlines():
+              if 'scoreView.text =' in line:
+                  prefix, expr = line.split('scoreView.text =', 1)
+                  line = prefix + 'scoreView.setText(' + expr.strip() + ')'
+              lines.append(line)
+          p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
 
       - name: Build debug APK
