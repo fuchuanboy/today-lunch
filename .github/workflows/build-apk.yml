@@ -24,16 +24,23 @@ jobs:
         with:
           gradle-version: '8.10'
 
-      - name: Fix Kotlin string interpolation
+      - name: Normalize Kotlin source
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
-          s = s.replace('$vegetable焖至断生', '${vegetable}焖至断生')
-          s = s.replace('$vegetable快速翻炒', '${vegetable}快速翻炒')
-          s = s.replace('$green洗净沥干', '${green}洗净沥干')
-          s = s.replace('$green快速翻炒', '${green}快速翻炒')
+          for a, b in {
+              '$vegetable焖至断生': '${vegetable}焖至断生',
+              '$vegetable快速翻炒': '${vegetable}快速翻炒',
+              '$green洗净沥干': '${green}洗净沥干',
+              '$green快速翻炒': '${green}快速翻炒',
+              'private lateinit var score: TextView': 'private lateinit var scoreView: TextView',
+              'score = TextView': 'scoreView = TextView',
+              'root.addView(score)': 'root.addView(scoreView)',
+              'score.text =': 'scoreView.text ='
+          }.items():
+              s = s.replace(a, b)
           p.write_text(s, encoding='utf-8')
           PY
 
