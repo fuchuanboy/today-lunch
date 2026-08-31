@@ -8,22 +8,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '8.10'
-
       - name: Normalize Kotlin source
         run: |
           python3 - <<'PY'
@@ -51,13 +47,10 @@ jobs:
               lines.append(line)
           p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
-
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
-
       - name: Verify APK exists
         run: ls -lh app/build/outputs/apk/debug/app-debug.apk
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
