@@ -1,0 +1,31 @@
+name: Final Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare final source
+        run: |
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt
+          mv app/src/main/java/com/fuchuanboy/todaylunch/MainActivityFinal.kt app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt
+      - name: Build APK
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Verify APK
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload final APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: today-lunch-final-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
