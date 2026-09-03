@@ -20,6 +20,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '8.10'
+      - name: Remove obsolete broken sources
+        run: |
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/MainActivityFinal.kt
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/FinalActivity.kt
       - name: Normalize Kotlin source
         run: |
           python3 - <<'PY'
@@ -27,7 +31,7 @@ jobs:
           import re
           p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
-          for a, b in {
+          replacements = {
               '$vegetable焖至断生': '${vegetable}焖至断生',
               '$vegetable快速翻炒': '${vegetable}快速翻炒',
               '$green洗净沥干': '${green}洗净沥干',
@@ -36,16 +40,9 @@ jobs:
               'score = TextView': 'scoreView = TextView',
               'root.addView(score)': 'root.addView(scoreView)',
               'score.text =': 'scoreView.text ='
-          }.items():
-              s = s.replace(a, b)
-          s = re.sub(r'apply \{ text = (.*?);', r'apply { setText(\1);', s)
-          lines = []
-          for line in s.splitlines():
-              if 'scoreView.text =' in line:
-                  prefix, expr = line.split('scoreView.text =', 1)
-                  line = prefix + 'scoreView.setText(' + expr.strip() + ')'
-              lines.append(line)
-          p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          }
+          for a,b in replacements.items(): s=s.replace(a,b)
+          p.write_text(s, encoding='utf-8')
           PY
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
