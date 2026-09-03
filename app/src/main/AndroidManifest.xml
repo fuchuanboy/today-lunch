@@ -7,7 +7,7 @@
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
-            android:name=".FinalActivityUltimate"
+            android:name=".Ultimate2026Activity"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
