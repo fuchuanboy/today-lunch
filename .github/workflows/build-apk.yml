@@ -24,11 +24,13 @@ jobs:
         run: |
           rm -f app/src/main/java/com/fuchuanboy/todaylunch/MainActivityFinal.kt
           rm -f app/src/main/java/com/fuchuanboy/todaylunch/FinalActivity.kt
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/FinalActivityFixed.kt
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/FinalActivityUltimate.kt
+          rm -f app/src/main/java/com/fuchuanboy/todaylunch/Ultimate2026Activity.kt
       - name: Normalize Kotlin source
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p = Path('app/src/main/java/com/fuchuanboy/todaylunch/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
           replacements = {
@@ -42,6 +44,8 @@ jobs:
               'score.text =': 'scoreView.text ='
           }
           for a,b in replacements.items(): s=s.replace(a,b)
+          # The previous normalization accidentally left one direct TextView assignment.
+          s=s.replace('scoreView = "营养搭配评分', 'scoreView.text = "营养搭配评分')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Build debug APK
