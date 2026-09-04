@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-import csv, json, re, urllib.parse, urllib.request
+import csv,json,re,urllib.parse,urllib.request
+from concurrent.futures import ThreadPoolExecutor,as_completed
 from pathlib import Path
-OUT=Path('app/src/main/assets/recipes.csv')
-API='https://datasets-server.huggingface.co/search'
+OUT=Path('app/src/main/assets/recipes.csv');API='https://datasets-server.huggingface.co/search'
 TERMS=['炒','烧','炖','蒸','煎','焖','拌','卤','煮','烤','汤','豆腐','鸡','猪','牛','羊','鱼','虾','茄子','土豆','白菜','青菜','香菇','西红柿','丝瓜','冬瓜']
 MUST=['红烧肉','青椒肉丝','鱼香肉丝','宫保鸡丁','可乐鸡翅','照烧鸡腿','黑椒牛柳','洋葱肥牛','清蒸鲈鱼','蒜蓉虾','麻婆豆腐','家常豆腐','香菇烧豆腐','蒜蓉空心菜','蒜蓉苋菜','香菇炒上海青','蚝油生菜','番茄炒蛋','丝瓜炒蛋','清炒豇豆','清炒冬瓜','冬瓜虾皮汤','番茄蛋花汤','紫菜蛋花汤','菌菇豆腐汤']
 def get_rows(term):
     q=urllib.parse.urlencode({'dataset':'xzm1999/XiaChuFang_Recipe_Corpus','config':'default','split':'train','query':term,'offset':0,'length':100})
-    with urllib.request.urlopen(API+'?'+q,timeout=30) as r:return json.load(r).get('rows',[])
+    try:
+        with urllib.request.urlopen(API+'?'+q,timeout=12) as r:return json.load(r).get('rows',[])
+    except Exception as e: print('query failed',term,e); return []
 def vegs(n):
     keys=['五花肉','猪肉','鸡腿','鸡翅','鸡肉','牛肉','肥牛','羊肉','鲈鱼','鲤鱼','带鱼','鲫鱼','虾仁','虾','鱿鱼','花甲','蟹','豆腐','豆干','豆皮','腐竹','千张','素鸡','豆芽','茄子','土豆','豇豆','四季豆','西兰花','菜花','白菜','娃娃菜','包菜','上海青','小白菜','油麦菜','生菜','空心菜','苋菜','菠菜','芥蓝','芹菜','莴笋','丝瓜','冬瓜','西葫芦','黄瓜','莲藕','荷兰豆','芦笋','玉米','山药','蘑菇','杏鲍菇','木耳','胡萝卜','萝卜','番茄','西红柿','洋葱','青椒','彩椒','韭菜','韭黄','蒜薹','蒜苗','香菇','金针菇','海带','紫菜']
     return [x for x in keys if x in n][:3] or ['时蔬']
@@ -28,23 +30,20 @@ def fields(n,t):
         return v,92,ing,step
     if t=='植物蛋白':
         p=next((x for x in ['豆腐','豆干','豆皮','腐竹','千张','素鸡','豆芽'] if x in n),'豆腐')
-        ing='、'.join([p]+[x for x in v if x!=p][:2]+['葱蒜','生抽','蚝油','食用油','盐'])
-        return v,90,ing,'豆制品切好并沥干；热锅少油煎香或翻炒；加入配菜和调味料，加少量热水焖入味，最后收汁。'
+        return v,90,'、'.join([p]+[x for x in v if x!=p][:2]+['葱蒜','生抽','蚝油','食用油','盐']),'豆制品切好并沥干；热锅少油煎香或翻炒；加入配菜和调味料，加少量热水焖入味，最后收汁。'
     if t in ('绿叶蔬菜','蔬菜'):
-        p=v[0];ing='、'.join([p]+v[1:2]+['蒜','食用油','盐','蚝油'])
-        return v,89 if t=='绿叶蔬菜' else 88,ing,'食材洗净切好并沥干；热锅少油爆香蒜末；放入主料大火翻炒至断生，最后加盐和少量蚝油调味。'
+        p=v[0];return v,89 if t=='绿叶蔬菜' else 88,'、'.join([p]+v[1:2]+['蒜','食用油','盐','蚝油']),'食材洗净切好并沥干；热锅少油爆香蒜末；放入主料大火翻炒至断生，最后加盐和少量蚝油调味。'
     return v,91,'、'.join(v[:3]+['姜','葱','盐','清水']),'食材洗净切好；锅中加水和姜片煮开，依次放入主料与配菜；中小火煮至熟透，最后加盐和葱花。'
 def main():
     dishes={n:None for n in MUST}
-    for term in TERMS:
-        try:
-            for item in get_rows(term):
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        fs={ex.submit(get_rows,t):t for t in TERMS}
+        for f in as_completed(fs):
+            for item in f.result():
                 row=item.get('row',{});n=str(row.get('dish') or row.get('name') or '').strip()
                 if not n or n=='Unknown':continue
                 n=re.sub(r'[（(].*?[）)]','',n).strip()
                 if 2<=len(n)<=20:dishes.setdefault(n,None)
-                if len(dishes)>=2600:break
-        except Exception as e: print('query failed',term,e)
     items=[]
     for n in dishes:
         t=classify(n);v,s,ing,step=fields(n,t);items.append([len(items)+1,n,t,'、'.join(v),s,ing,step,n])
