@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -28,6 +27,11 @@ class MainActivity : Activity() {
         val score: Int,
         val image: String
     )
+
+    private lateinit var hero: ImageView
+    private lateinit var scoreView: TextView
+    private lateinit var listBox: LinearLayout
+    private val random = Random(System.currentTimeMillis())
 
     private val recipes = listOf(
         Recipe("鱼香肉丝", "猪肉", listOf("木耳", "胡萝卜", "青椒"), "猪里脊、木耳、胡萝卜、青椒、葱姜蒜、泡椒、醋、生抽、糖、淀粉", listOf("猪肉切丝，加生抽、淀粉腌10分钟。", "木耳、胡萝卜、青椒切丝；调好鱼香汁。", "肉丝滑油变色盛出，爆香葱姜蒜和泡椒。", "下蔬菜翻炒，回锅肉丝，倒鱼香汁，大火收汁。"), 95, "pork"),
@@ -51,83 +55,116 @@ class MainActivity : Activity() {
         Recipe("蒜蓉虾", "虾", listOf("粉丝", "蒜"), "鲜虾、粉丝、大蒜、小米椒、生抽、蚝油", listOf("粉丝泡软铺盘，虾开背去虾线。", "蒜末和小米椒用热油炒香。", "把蒜蓉铺在虾上。", "蒸8分钟，淋生抽和热油。"), 95, "shrimp"),
         Recipe("白灼虾", "虾", listOf("生菜", "姜"), "鲜虾、生菜、姜、葱、生抽", listOf("锅中水加姜葱烧开。", "放入鲜虾煮至变红卷曲。", "捞出冰水快速降温。", "配生抽蘸食，生菜另盘。"), 94, "shrimp"),
         Recipe("西兰花炒虾仁", "虾", listOf("西兰花", "胡萝卜"), "虾仁、西兰花、胡萝卜、蒜、生抽", listOf("虾仁加少量盐和淀粉腌制。", "西兰花和胡萝卜焯水。", "蒜末爆香，炒虾仁至变色。", "加入蔬菜和生抽，大火翻匀。"), 97, "shrimp"),
-        Recipe("清蒸鲈鱼", "鱼", listOf("葱", "姜"), "鲈鱼、葱、姜、蒸鱼豉油、食用油", listOf("鱼清理后两面划刀，放姜片。", "水开后上锅蒸8至10分钟。", "倒掉蒸出的水，铺葱丝。", "淋蒸鱼豉油和热油。"), 98, "fish"),
-        Recipe("番茄鱼片", "鱼", listOf("番茄", "金针菇"), "鱼片、番茄、金针菇、姜、葱、生抽", listOf("鱼片加盐和淀粉腌制。", "番茄炒出汁，加水煮开。", "加入金针菇煮熟。", "放入鱼片煮至刚熟，调味出锅。"), 96, "fish"),
-        Recipe("麻婆豆腐", "豆制品", listOf("豆腐", "蒜苗"), "嫩豆腐、肉末、豆瓣酱、花椒、蒜苗、生抽", listOf("豆腐切块焯水。", "肉末炒散，加入豆瓣酱和花椒炒出红油。", "加水放入豆腐，小火烧几分钟。", "勾薄芡，撒蒜苗和花椒粉。"), 96, "tofu"),
-        Recipe("家常豆腐", "豆制品", listOf("木耳", "青椒"), "老豆腐、木耳、青椒、豆瓣酱、生抽", listOf("豆腐切片煎至两面金黄。", "木耳泡发，青椒切块。", "豆瓣酱炒香加少量水。", "加入豆腐木耳青椒烧至入味。"), 95, "tofu"),
-        Recipe("西红柿炒鸡蛋", "鸡蛋", listOf("西红柿", "葱"), "西红柿、鸡蛋、葱、盐、糖", listOf("鸡蛋打散炒熟盛出。", "西红柿切块炒出汁。", "加入少量糖提鲜。", "回锅鸡蛋，加盐和葱花翻匀。"), 95, "egg"),
-        Recipe("青椒炒蛋", "鸡蛋", listOf("青椒", "木耳"), "鸡蛋、青椒、木耳、蒜、生抽", listOf("鸡蛋炒熟盛出。", "青椒切丝，木耳切片。", "蒜末爆香，下青椒木耳炒熟。", "加入鸡蛋和生抽翻匀。"), 92, "egg"),
-        Recipe("蒜蓉上海青", "蔬菜", listOf("上海青"), "上海青、大蒜、盐、食用油", listOf("上海青洗净沥干。", "蒜切末。", "热锅爆香蒜末。", "加入上海青大火翻炒至断生，加盐出锅。"), 94, "greens"),
-        Recipe("香菇扒青菜", "蔬菜", listOf("上海青", "香菇"), "上海青、鲜香菇、蒜、蚝油", listOf("青菜焯水摆盘。", "香菇切片，蒜末爆香。", "加入香菇、蚝油和少量水烧熟。", "把香菇和汤汁浇在青菜上。"), 96, "greens"),
-        Recipe("清炒空心菜", "蔬菜", listOf("空心菜"), "空心菜、大蒜、盐", listOf("空心菜洗净切段。", "蒜末入锅爆香。", "大火加入空心菜快速翻炒。", "叶片刚软时加盐立即出锅。"), 93, "greens"),
-        Recipe("冬瓜虾皮汤", "汤", listOf("冬瓜", "虾皮"), "冬瓜、虾皮、葱、姜、盐", listOf("冬瓜去皮切片。", "姜片和虾皮炒香。", "加入冬瓜和清水煮至透明。", "加盐和葱花调味。"), 96, "soup"),
-        Recipe("紫菜蛋花汤", "汤", listOf("紫菜", "鸡蛋"), "紫菜、鸡蛋、葱、盐、香油", listOf("锅中水烧开，放紫菜。", "鸡蛋打散沿锅边淋入。", "用筷子轻轻搅成蛋花。", "加盐、葱花和香油。"), 94, "soup")
+        Recipe("清蒸鲈鱼", "鱼", listOf("葱", "姜"), "鲈鱼、葱、姜、蒸鱼豉油、食用油", listOf("鱼清理后两面划刀，放姜片。", "水开后上锅蒸8至10分钟。", "倒掉蒸出的水，铺葱丝。", "淋蒸鱼豉油和热油。"), 96, "fish"),
+        Recipe("番茄炒蛋", "鸡蛋", listOf("番茄"), "鸡蛋、番茄、葱、盐、食用油", listOf("鸡蛋打散炒熟盛出。", "番茄切块炒出汁。", "鸡蛋回锅翻匀。", "加盐和葱花出锅。"), 92, "egg"),
+        Recipe("家常豆腐", "豆制品", listOf("青椒", "木耳"), "老豆腐、青椒、木耳、葱姜蒜、生抽、蚝油、淀粉", listOf("豆腐切块煎至两面金黄。", "青椒和木耳切好。", "葱姜蒜爆香后下青椒木耳。", "加入豆腐、生抽和蚝油，加少量水烧至入味。"), 94, "tofu"),
+        Recipe("麻婆豆腐", "豆制品", listOf("青蒜", "辣椒"), "嫩豆腐、牛肉末、豆瓣酱、花椒、青蒜、辣椒", listOf("豆腐切块焯水。", "牛肉末炒散，加入豆瓣酱和花椒炒香。", "加水放入豆腐，小火烧入味。", "淀粉勾薄芡，撒青蒜。"), 93, "tofu"),
+        Recipe("蒜蓉上海青", "绿叶蔬菜", listOf("上海青"), "上海青、大蒜、食用油、盐", listOf("上海青洗净沥干，大蒜切末。", "热锅少油爆香蒜末。", "加入上海青大火快速翻炒至刚断生。", "加盐调味立即出锅。"), 94, "green"),
+        Recipe("香菇炒油麦菜", "绿叶蔬菜", listOf("油麦菜", "香菇"), "油麦菜、鲜香菇、大蒜、蚝油、盐、食用油", listOf("油麦菜洗净切段，香菇切片。", "蒜末爆香，先下香菇炒软。", "加入油麦菜大火翻炒。", "加蚝油和少量盐，炒至刚断生。"), 95, "green"),
+        Recipe("清炒空心菜", "绿叶蔬菜", listOf("空心菜"), "空心菜、大蒜、盐、食用油", listOf("空心菜洗净切段，大蒜切末。", "热锅下油爆香蒜末。", "大火加入空心菜快速翻炒。", "加盐炒匀，保持脆嫩后出锅。"), 94, "green"),
+        Recipe("蚝油生菜", "绿叶蔬菜", listOf("生菜"), "生菜、大蒜、蚝油、生抽、食用油", listOf("生菜洗净沥干。", "水开后焯生菜十几秒，立即捞出。", "蒜末爆香，加入蚝油和少量生抽。", "将料汁淋在生菜上。"), 93, "green"),
+        Recipe("番茄西兰花", "蔬菜", listOf("番茄", "西兰花"), "番茄、西兰花、大蒜、盐、食用油", listOf("西兰花切小朵焯水，番茄切块。", "蒜末爆香，加入番茄炒出汁。", "放入西兰花翻炒。", "加盐调味，炒匀出锅。"), 95, "vegetable"),
+        Recipe("酸辣土豆丝", "蔬菜", listOf("土豆", "青椒"), "土豆、青椒、干辣椒、醋、盐、蒜", listOf("土豆切细丝，清水冲洗去淀粉。", "干辣椒和蒜末爆香。", "加入土豆丝和青椒大火快炒。", "沿锅边淋醋，加盐翻匀出锅。"), 92, "vegetable"),
+        Recipe("凉拌黄瓜", "蔬菜", listOf("黄瓜"), "黄瓜、大蒜、生抽、醋、香油", listOf("黄瓜拍裂切段。", "蒜切末。", "加入生抽、醋和少量香油。", "拌匀后冷藏片刻食用。"), 90, "vegetable"),
+        Recipe("冬瓜虾皮汤", "汤", listOf("冬瓜"), "冬瓜、虾皮、姜、葱、盐", listOf("冬瓜切片。", "姜和虾皮炒香。", "加水煮开后放入冬瓜。", "煮至冬瓜透明，调盐撒葱花。"), 96, "soup"),
+        Recipe("番茄蛋花汤", "汤", listOf("番茄"), "番茄、鸡蛋、葱、盐、香油", listOf("番茄切块炒出汁。", "加入清水煮开。", "鸡蛋打散沿锅边淋入。", "调盐，滴少量香油。"), 96, "soup"),
+        Recipe("紫菜豆腐汤", "汤", listOf("紫菜", "豆腐"), "紫菜、豆腐、葱、盐、白胡椒", listOf("豆腐切小块。", "水开后加入豆腐煮几分钟。", "放入紫菜。", "加盐和白胡椒，撒葱花。"), 95, "soup"),
+        Recipe("丝瓜蛋汤", "汤", listOf("丝瓜"), "丝瓜、鸡蛋、姜、盐、香油", listOf("丝瓜去皮切片。", "锅中加水和姜片烧开。", "放入丝瓜煮软。", "淋入蛋液，调盐和香油。"), 95, "soup")
     )
-
-    private val random = Random(System.currentTimeMillis())
-    private lateinit var root: LinearLayout
-    private lateinit var hero: ImageView
-    private lateinit var title: TextView
-    private lateinit var subtitle: TextView
-    private lateinit var score: TextView
-    private lateinit var listBox: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        render()
-    }
-
-    private fun render() {
-        root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 24, 24, 28); setBackgroundColor(Color.rgb(248, 252, 246)) }
-        val scroll = ScrollView(this).apply { addView(root) }
-        val head = TextView(this).apply { text = "河南省 · 今天中午吃什么？"; textSize = 16f; setTextColor(Color.DKGRAY); setPadding(4, 4, 4, 18) }
-        root.addView(head)
-        title = TextView(this).apply { text = "今天中午吃什么？"; textSize = 30f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(20, 82, 42)); gravity = Gravity.CENTER; setPadding(0, 4, 0, 4) }
+        val scroll = ScrollView(this)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 24, 20, 24)
+            setBackgroundColor(Color.rgb(246, 250, 247))
+        }
+        val title = TextView(this).apply {
+            text = "今天中午吃什么？"
+            textSize = 28f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(24, 91, 51))
+            setPadding(0, 0, 0, 6)
+        }
         root.addView(title)
-        subtitle = TextView(this).apply { text = "随机四菜一汤 · 荤素搭配 · 真实菜品图片"; textSize = 16f; gravity = Gravity.CENTER; setTextColor(Color.GRAY); setPadding(0, 0, 0, 16) }
+        val subtitle = TextView(this).apply {
+            text = "河南家常 · 营养搭配 · 四菜一汤"
+            textSize = 15f
+            setTextColor(Color.GRAY)
+            setPadding(0, 0, 0, 14)
+        }
         root.addView(subtitle)
-        hero = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; setBackgroundColor(Color.LTGRAY) }
-        root.addView(hero, LinearLayout.LayoutParams(-1, 420).apply { setMargins(0, 0, 0, 18) })
-        val randomButton = Button(this).apply { text = "🎲  随机一桌"; textSize = 18f; setOnClickListener { makeMeal() } }
+        hero = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setBackgroundColor(Color.rgb(220, 235, 224))
+        }
+        root.addView(hero, LinearLayout.LayoutParams(-1, 240).apply { setMargins(0, 0, 0, 18) })
+        val randomButton = Button(this).apply {
+            text = "🎲  随机一桌"
+            textSize = 18f
+            setOnClickListener { makeMeal() }
+        }
         root.addView(randomButton, LinearLayout.LayoutParams(-1, 58).apply { setMargins(0, 0, 0, 16) })
-        score = TextView(this).apply { textSize = 18f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(30, 120, 60)); gravity = Gravity.CENTER; setPadding(0, 8, 0, 18) }
-        root.addView(score)
+        scoreView = TextView(this).apply {
+            textSize = 18f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(30, 120, 60))
+            gravity = Gravity.CENTER
+            setPadding(0, 8, 0, 18)
+        }
+        root.addView(scoreView)
         listBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(listBox)
+        scroll.addView(root)
         setContentView(scroll)
         makeMeal()
     }
 
     private fun makeMeal() {
-        val pool = recipes.filter { it.protein != "汤" && it.protein != "蔬菜" }
+        val animal = recipes.filter { it.protein in setOf("猪肉", "牛肉", "羊肉", "鸡肉", "鸭肉", "鱼", "虾") }
+        val plant = recipes.filter { it.protein == "豆制品" }
+        val green = recipes.filter { it.protein == "绿叶蔬菜" }
+        val vitamin = recipes.filter { it.protein == "蔬菜" }
         val chosen = mutableListOf<Recipe>()
-        val usedVegetables = mutableSetOf<String>()
-        val usedProtein = mutableSetOf<String>()
-        val candidates = pool.shuffled(random)
-        for (r in candidates) {
-            val overlap = r.vegetables.any { it in usedVegetables }
-            if (!overlap && (r.protein !in usedProtein || chosen.size >= 2)) {
-                chosen += r
-                usedVegetables += r.vegetables
-                usedProtein += r.protein
-            }
-            if (chosen.size == 4) break
-        }
-        if (chosen.size < 4) chosen.addAll(pool.filter { it !in chosen }.shuffled(random).take(4 - chosen.size))
-        val soup = recipes.filter { it.protein == "汤" }.random(random)
+        chosen += animal.random(random)
+        chosen += plant.random(random)
+        chosen += green.random(random)
+        val used = chosen.flatMap { it.vegetables }.toSet()
+        val vitaminPick = vitamin.filter { r -> r.vegetables.none { it in used } }.randomOrNull(random) ?: vitamin.random(random)
+        chosen += vitaminPick
+        val soup = recipes.filter { it.protein == "汤" }.filter { it.vegetables.none { v -> chosen.flatMap { it.vegetables }.contains(v) } }.randomOrNull(random)
+            ?: recipes.filter { it.protein == "汤" }.random(random)
         val meal = chosen + soup
         listBox.removeAllViews()
         meal.forEachIndexed { index, r -> addCard(r, index + 1) }
         val avg = meal.map { it.score }.average().toInt()
-        score.text = "营养搭配评分  $avg / 100    ★★★★★\n蔬菜重复：${if (chosen.flatMap { it.vegetables }.size == chosen.flatMap { it.vegetables }.toSet().size) "无" else "已优化"} · 蛋白质：${chosen.map { it.protein }.distinct().joinToString("、")}"
+        val vegetables = chosen.flatMap { it.vegetables }
+        val repeat = vegetables.size != vegetables.toSet().size
+        scoreView.text = "营养搭配评分  $avg / 100  ★★★★★\n蔬菜重复：${if (repeat) "已优化" else "无"} · 蛋白质：${chosen.map { it.protein }.distinct().joinToString("、")}"
         loadImage(hero, chosen.first().image, chosen.first().name)
     }
 
     private fun addCard(r: Recipe, number: Int) {
-        val box = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(16, 12, 16, 12); setBackgroundColor(Color.WHITE); isClickable = true; setOnClickListener { showDetail(r) } }
-        val text = TextView(this).apply { text = "$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}"; textSize = 17f; setTextColor(Color.DKGRAY) }
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(16, 12, 16, 12)
+            setBackgroundColor(Color.WHITE)
+            isClickable = true
+            setOnClickListener { showDetail(r) }
+        }
+        val text = TextView(this).apply {
+            text = "$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}"
+            textSize = 17f
+            setTextColor(Color.DKGRAY)
+        }
         box.addView(text, LinearLayout.LayoutParams(0, -2, 1f))
-        val arrow = TextView(this).apply { text = "›"; textSize = 30f; gravity = Gravity.CENTER_VERTICAL; setTextColor(Color.GRAY) }
+        val arrow = TextView(this).apply {
+            text = "›"
+            textSize = 30f
+            gravity = Gravity.CENTER_VERTICAL
+            setTextColor(Color.GRAY)
+        }
         box.addView(arrow, LinearLayout.LayoutParams(40, -1))
         listBox.addView(box, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, 0, 0, 10) })
     }
