@@ -18,7 +18,6 @@ class MainActivity : Activity() {
     private lateinit var scoreView:TextView
     private lateinit var hero:ImageView
     private val random=Random(System.currentTimeMillis())
-
     private val recipes=listOf(
         Recipe("红烧肉","猪肉",listOf("五花肉","葱"),92,"红烧肉","五花肉、冰糖、生抽、老抽、姜、葱、料酒","五花肉切块焯水；锅中炒糖色，下肉块翻匀；加入姜葱、生抽老抽和热水，小火炖40分钟，收汁。"),
         Recipe("青椒肉丝","猪肉",listOf("青椒","猪肉"),90,"青椒肉丝","里脊肉、青椒、生抽、淀粉、姜蒜","肉丝加生抽和淀粉腌10分钟；热锅滑油炒肉丝；加入青椒和蒜片快速翻炒至断生。"),
@@ -43,23 +42,22 @@ class MainActivity : Activity() {
         Recipe("紫菜蛋花汤","汤",listOf("紫菜","鸡蛋"),90,"紫菜蛋花汤","紫菜、鸡蛋、葱、盐","水煮开后放紫菜；蛋液缓慢倒入并搅成蛋花；加盐和葱。"),
         Recipe("菌菇豆腐汤","汤",listOf("菌菇","豆腐"),93,"菌菇豆腐汤","菌菇、豆腐、葱、盐","菌菇洗净下锅煮开；加入豆腐煮5分钟；加盐和葱调味。")
     )
-
-    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState); buildUi(); makeMeal()}
+    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);buildUi();makeMeal()}
     private fun buildUi(){
-        val scroll=ScrollView(this); val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(24,24,24,32);setBackgroundColor(Color.rgb(246,250,246))}
-        val title=TextView(this).apply{text="今天中午吃什么";textSize=30f;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(25,110,55))}
-        root.addView(title,LinearLayout.LayoutParams(-1,wrap()))
-        val sub=TextView(this).apply{text="河南家常 · 营养四菜一汤";textSize=16f;setTextColor(Color.DKGRAY);setPadding(0,4,0,18)};root.addView(sub)
-        hero=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.LTGRAY)};root.addView(hero,LinearLayout.LayoutParams(-1,dp(190)).apply{setMargins(0,0,0,16)})
-        val btn=Button(this).apply{text="🎲  随机一桌";textSize=19f;setOnClickListener{makeMeal()}};root.addView(btn,LinearLayout.LayoutParams(-1,dp(58)).apply{setMargins(0,0,0,12)})
-        scoreView=TextView(this).apply{textSize=17f;gravity=Gravity.CENTER;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(30,120,60));setPadding(0,8,0,16)};root.addView(scoreView)
+        val scroll=ScrollView(this);val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(24),dp(24),dp(24),dp(32));setBackgroundColor(Color.rgb(246,250,246))}
+        root.addView(TextView(this).apply{text="今天中午吃什么";textSize=30f;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(25,110,55))},LinearLayout.LayoutParams(-1,wrap()))
+        root.addView(TextView(this).apply{text="河南家常 · 营养四菜一汤";textSize=16f;setTextColor(Color.DKGRAY);setPadding(0,dp(4),0,dp(18))})
+        hero=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.LTGRAY)};root.addView(hero,LinearLayout.LayoutParams(-1,dp(190)).apply{setMargins(0,0,0,dp(16))})
+        root.addView(Button(this).apply{text="🎲  随机一桌";textSize=19f;setOnClickListener{makeMeal()}},LinearLayout.LayoutParams(-1,dp(58)).apply{setMargins(0,0,0,dp(12))})
+        scoreView=TextView(this).apply{textSize=17f;gravity=Gravity.CENTER;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(30,120,60));setPadding(0,dp(8),0,dp(16))};root.addView(scoreView)
         listBox=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};root.addView(listBox);scroll.addView(root);setContentView(scroll)
     }
     private fun makeMeal(){
-        val animal=recipes.filter{it.protein in setOf("猪肉","牛肉","羊肉","鸡肉","鸭肉","鱼","虾")};val plant=recipes.filter{it.protein=="豆制品"};val green=recipes.filter{it.protein=="绿叶蔬菜"};val vitamin=recipes.filter{it.protein=="蔬菜"};
-        val chosen=mutableListOf<Recipe>();chosen+=animal.random(random);chosen+=plant.random(random);chosen+=green.random(random);val used=chosen.flatMap{it.vegetables}.toSet();chosen+=vitamin.filter{r->r.vegetables.none{it in used}}.randomOrNull(random)?:vitamin.random(random);val soup=recipes.filter{it.protein=="汤"}.filter{it.vegetables.none{v->chosen.flatMap{it.vegetables}.contains(v)}}.randomOrNull(random)?:recipes.filter{it.protein=="汤"}.random(random);val meal=chosen+soup;listBox.removeAllViews();meal.forEachIndexed{index,r->addCard(r,index+1)};scoreView.text="营养搭配评分  ${meal.map{it.score}.average().toInt()} / 100 ★★★★★";loadImage(hero,meal.first().image)}
-    private fun addCard(r:Recipe,number:Int){val box=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(dp(14),dp(12),dp(14),dp(12));setBackgroundColor(Color.WHITE);setOnClickListener{showDetail(r)}};val label=TextView(this).apply{setText("$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}");textSize=17f;setTextColor(Color.DKGRAY)};box.addView(label,LinearLayout.LayoutParams(0,wrap(),1f));val arrow=TextView(this).apply{text="›";textSize=30f;gravity=Gravity.CENTER_VERTICAL;setTextColor(Color.GRAY)};box.addView(arrow,LinearLayout.LayoutParams(dp(40),-1));listBox.addView(box,LinearLayout.LayoutParams(-1,wrap()).apply{setMargins(0,0,0,dp(10))})}
+        val animal=recipes.filter{it.protein in setOf("猪肉","牛肉","羊肉","鸡肉","鸭肉","鱼","虾")};val plant=recipes.filter{it.protein=="豆制品"};val green=recipes.filter{it.protein=="绿叶蔬菜"};val vitamin=recipes.filter{it.protein=="蔬菜"}
+        val chosen=mutableListOf<Recipe>();chosen+=animal.random(random);chosen+=plant.random(random);chosen+=green.random(random);val used=chosen.flatMap{it.vegetables}.toSet();chosen+=vitamin.filter{r->r.vegetables.none{it in used}}.randomOrNull(random)?:vitamin.random(random);val soup=recipes.filter{it.protein=="汤"}.filter{it.vegetables.none{v->chosen.flatMap{it.vegetables}.contains(v)}}.randomOrNull(random)?:recipes.filter{it.protein=="汤"}.random(random);val meal=chosen+soup;listBox.removeAllViews();meal.forEachIndexed{index,r->addCard(r,index+1)};scoreView.text="营养搭配评分  ${meal.map{it.score}.average().toInt()} / 100 ★★★★★";loadImage(hero,meal.first().image)
+    }
+    private fun addCard(r:Recipe,number:Int){val box=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(dp(14),dp(12),dp(14),dp(12));setBackgroundColor(Color.WHITE);setOnClickListener{showDetail(r)}};val label=TextView(this).apply{setText("$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}");textSize=17f;setTextColor(Color.DKGRAY)};box.addView(label,LinearLayout.LayoutParams(0,wrap(),1f));box.addView(TextView(this).apply{text="›";textSize=30f;gravity=Gravity.CENTER_VERTICAL;setTextColor(Color.GRAY)},LinearLayout.LayoutParams(dp(40),-1));listBox.addView(box,LinearLayout.LayoutParams(-1,wrap()).apply{setMargins(0,0,0,dp(10))})}
     private fun showDetail(r:Recipe){AlertDialog.Builder(this).setTitle(r.name).setMessage("食材：${r.ingredients}\n\n做法：${r.steps}").setPositiveButton("知道了",null).show()}
-    private fun loadImage(view:ImageView,dish:String){thread{try{val q=URLEncoder.encode("$dish food", "UTF-8");val url=URL("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=$q&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json");val json=url.readText();val thumb=Regex("\\\"thumburl\\\":\\\"([^\\\"]+)").find(json)?.groupValues?.get(1)?.replace("\\/","/");if(thumb!=null){val bmp=BitmapFactory.decodeStream(URL(thumb).openStream());runOnUiThread{view.setImageBitmap(bmp)}}}catch(_:Exception){}}}
+    private fun loadImage(view:ImageView,dish:String){thread{try{val q=URLEncoder.encode("$dish food","UTF-8");val url=URL("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=$q&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json");val json=url.readText();val thumb=Regex("\\\"thumburl\\\":\\\"([^\\\"]+)").find(json)?.groupValues?.get(1)?.replace("\\/","/");if(thumb!=null){val bmp=BitmapFactory.decodeStream(URL(thumb).openStream());runOnUiThread{view.setImageBitmap(bmp)}}}catch(_:Exception){}}}
     private fun dp(v:Int)= (v*resources.displayMetrics.density).toInt();private fun wrap()=LinearLayout.LayoutParams.WRAP_CONTENT
 }
