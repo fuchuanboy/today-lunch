@@ -4,194 +4,62 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
+import android.widget.*
 import java.net.URL
 import java.net.URLEncoder
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
 class MainActivity : Activity() {
-    data class Recipe(
-        val name: String,
-        val protein: String,
-        val vegetables: List<String>,
-        val ingredients: String,
-        val steps: List<String>,
-        val score: Int,
-        val image: String
+    data class Recipe(val name:String,val protein:String,val vegetables:List<String>,val score:Int,val image:String,val ingredients:String,val steps:String)
+    private lateinit var listBox:LinearLayout
+    private lateinit var scoreView:TextView
+    private lateinit var hero:ImageView
+    private val random=Random(System.currentTimeMillis())
+
+    private val recipes=listOf(
+        Recipe("红烧肉","猪肉",listOf("五花肉","葱"),92,"红烧肉","五花肉、冰糖、生抽、老抽、姜、葱、料酒","五花肉切块焯水；锅中炒糖色，下肉块翻匀；加入姜葱、生抽老抽和热水，小火炖40分钟，收汁。"),
+        Recipe("青椒肉丝","猪肉",listOf("青椒","猪肉"),90,"青椒肉丝","里脊肉、青椒、生抽、淀粉、姜蒜","肉丝加生抽和淀粉腌10分钟；热锅滑油炒肉丝；加入青椒和蒜片快速翻炒至断生。"),
+        Recipe("洋葱肥牛","牛肉",listOf("洋葱","牛肉"),91,"洋葱肥牛","肥牛、洋葱、生抽、蚝油、黑胡椒","肥牛焯至变色捞出；洋葱炒香；加入肥牛、生抽、蚝油和黑胡椒，大火翻炒。"),
+        Recipe("黑椒牛柳","牛肉",listOf("彩椒","牛肉"),93,"黑椒牛柳","牛里脊、彩椒、黑胡椒、生抽、淀粉","牛肉切条加淀粉腌制；大火快炒至变色；加入彩椒和黑椒汁翻炒均匀。"),
+        Recipe("照烧鸡腿","鸡肉",listOf("西兰花","鸡腿"),94,"照烧鸡腿","鸡腿、料酒、生抽、蜂蜜、西兰花","鸡腿去骨腌制；煎至两面金黄；加入生抽、料酒和蜂蜜收汁，配焯熟西兰花。"),
+        Recipe("可乐鸡翅","鸡肉",listOf("鸡翅","葱"),89,"可乐鸡翅","鸡翅、可乐、生抽、姜、葱","鸡翅划口焯水；煎至金黄；加入可乐、生抽和姜葱，中火煮至浓稠。"),
+        Recipe("清蒸鲈鱼","鱼",listOf("鲈鱼","葱"),95,"清蒸鲈鱼","鲈鱼、姜、葱、蒸鱼豉油","鲈鱼处理干净，放姜片；水开后蒸8-10分钟；倒掉汤汁，铺葱丝，淋热油和蒸鱼豉油。"),
+        Recipe("蒜蓉虾","虾",listOf("虾","蒜"),94,"蒜蓉虾","鲜虾、蒜、生抽、蚝油","鲜虾开背；蒜末炒香；铺在虾上蒸8分钟，淋少量生抽。"),
+        Recipe("麻婆豆腐","豆制品",listOf("豆腐","青蒜"),93,"麻婆豆腐","嫩豆腐、肉末、豆瓣酱、花椒、青蒜","豆腐焯水；肉末炒香加入豆瓣酱；加水和豆腐烧5分钟，勾薄芡，撒花椒和青蒜。"),
+        Recipe("家常豆腐","豆制品",listOf("豆腐","木耳","青椒"),92,"家常豆腐","老豆腐、木耳、青椒、豆瓣酱、生抽","豆腐煎至两面金黄；加入木耳青椒；加豆瓣酱和少量水烧入味。"),
+        Recipe("香菇烧豆腐","豆制品",listOf("豆腐","香菇"),91,"香菇烧豆腐","豆腐、香菇、生抽、蚝油、葱","豆腐煎香；香菇炒软；加豆腐、生抽蚝油和少量水，小火烧8分钟。"),
+        Recipe("香菇炒上海青","绿叶蔬菜",listOf("上海青","香菇"),90,"香菇炒上海青","上海青、鲜香菇、蒜、盐","上海青洗净沥干；香菇切片炒香；加入上海青大火快速翻炒，加盐出锅。"),
+        Recipe("蒜蓉空心菜","绿叶蔬菜",listOf("空心菜","蒜"),91,"蒜蓉空心菜","空心菜、蒜、盐","空心菜洗净沥干；蒜末爆香；加入空心菜大火快速翻炒至断生，加盐。"),
+        Recipe("蒜蓉苋菜","绿叶蔬菜",listOf("苋菜","蒜"),90,"蒜蓉苋菜","苋菜、蒜、盐","苋菜洗净沥干；蒜末爆香；加入苋菜快速翻炒至变软，加盐调味。"),
+        Recipe("蚝油生菜","绿叶蔬菜",listOf("生菜","蒜"),89,"蚝油生菜","生菜、蒜、蚝油、生抽","生菜焯水30秒捞出；蒜末炒香，加入蚝油生抽和少量水煮开，淋在生菜上。"),
+        Recipe("丝瓜炒蛋","蔬菜",listOf("丝瓜","鸡蛋"),92,"丝瓜炒蛋","丝瓜、鸡蛋、蒜、盐","鸡蛋炒熟盛出；丝瓜去皮切块炒至断生；倒回鸡蛋，加盐快速翻匀。"),
+        Recipe("番茄炒蛋","蔬菜",listOf("番茄","鸡蛋"),93,"番茄炒蛋","番茄、鸡蛋、葱、盐","鸡蛋炒熟盛出；番茄炒出汁；倒回鸡蛋，加盐和葱翻匀。"),
+        Recipe("清炒豇豆","蔬菜",listOf("豇豆","蒜"),88,"清炒豇豆","豇豆、蒜、盐","豇豆切段；热油爆香蒜末；加入豇豆炒熟，加少量水焖至断生。"),
+        Recipe("冬瓜虾皮汤","汤",listOf("冬瓜","虾皮"),91,"冬瓜虾皮汤","冬瓜、虾皮、葱、盐","冬瓜切片；锅中加水煮沸，放冬瓜和虾皮；煮10分钟，加盐和葱。"),
+        Recipe("番茄蛋花汤","汤",listOf("番茄","鸡蛋"),92,"番茄蛋花汤","番茄、鸡蛋、葱、盐","番茄炒出汁加水煮开；淋入蛋液形成蛋花；加盐和葱即可。"),
+        Recipe("紫菜蛋花汤","汤",listOf("紫菜","鸡蛋"),90,"紫菜蛋花汤","紫菜、鸡蛋、葱、盐","水煮开后放紫菜；蛋液缓慢倒入并搅成蛋花；加盐和葱。"),
+        Recipe("菌菇豆腐汤","汤",listOf("菌菇","豆腐"),93,"菌菇豆腐汤","菌菇、豆腐、葱、盐","菌菇洗净下锅煮开；加入豆腐煮5分钟；加盐和葱调味。")
     )
 
-    private lateinit var hero: ImageView
-    private lateinit var scoreView: TextView
-    private lateinit var listBox: LinearLayout
-    private val random = Random(System.currentTimeMillis())
-
-    private val recipes = listOf(
-        Recipe("鱼香肉丝", "猪肉", listOf("木耳", "胡萝卜", "青椒"), "猪里脊、木耳、胡萝卜、青椒、葱姜蒜、泡椒、醋、生抽、糖、淀粉", listOf("猪肉切丝，加生抽、淀粉腌10分钟。", "木耳、胡萝卜、青椒切丝；调好鱼香汁。", "肉丝滑油变色盛出，爆香葱姜蒜和泡椒。", "下蔬菜翻炒，回锅肉丝，倒鱼香汁，大火收汁。"), 95, "pork"),
-        Recipe("木须肉", "猪肉", listOf("黄瓜", "木耳"), "猪里脊、鸡蛋、黄瓜、木耳、葱姜、生抽、盐、料酒", listOf("猪肉切片腌好，鸡蛋打散。", "鸡蛋炒至凝固盛出，肉片滑炒变色。", "下黄瓜、木耳快速翻炒。", "加入鸡蛋和调味料，炒匀出锅。"), 94, "pork"),
-        Recipe("青椒肉丝", "猪肉", listOf("青椒"), "猪里脊、青椒、蒜、生抽、料酒、淀粉", listOf("肉丝加生抽、料酒、淀粉抓匀。", "青椒切丝，蒜切末。", "热锅滑炒肉丝至变色盛出。", "蒜末爆香，下青椒，回锅肉丝，快速翻匀。"), 94, "pork"),
-        Recipe("农家小炒肉", "猪肉", listOf("青椒", "蒜苗"), "五花肉、青椒、蒜苗、豆豉、蒜、生抽", listOf("五花肉切薄片，青椒切段。", "锅中少油煸出五花肉油脂。", "加入豆豉、蒜和青椒炒香。", "加入蒜苗和生抽，大火翻炒断生。"), 93, "pork"),
-        Recipe("京酱肉丝", "猪肉", listOf("黄瓜", "葱"), "猪里脊、甜面酱、黄瓜、大葱、豆皮、淀粉", listOf("猪肉切丝腌制，黄瓜和葱切丝。", "肉丝滑炒至变色。", "锅中放甜面酱炒香。", "回锅肉丝翻匀，用豆皮卷黄瓜葱丝食用。"), 92, "pork"),
-        Recipe("糖醋里脊", "猪肉", listOf("青椒"), "里脊肉、淀粉、番茄酱、白糖、醋、白芝麻", listOf("里脊切条，加盐和淀粉挂糊。", "油温六成热炸至金黄。", "锅中调番茄酱、糖、醋和少量水。", "倒入里脊快速裹汁，撒芝麻。"), 89, "pork"),
-        Recipe("洋葱肥牛", "牛肉", listOf("洋葱", "青椒"), "肥牛片、洋葱、青椒、生抽、蚝油、黑胡椒", listOf("洋葱和青椒切块。", "肥牛焯水去浮沫。", "锅中少油炒香洋葱。", "加入肥牛、青椒、生抽、蚝油和黑胡椒，大火炒匀。"), 96, "beef"),
-        Recipe("黑椒牛柳", "牛肉", listOf("彩椒", "洋葱"), "牛里脊、彩椒、洋葱、黑胡椒、生抽、淀粉", listOf("牛肉切条，加生抽和淀粉腌制。", "彩椒、洋葱切条。", "牛肉快速滑炒至七成熟。", "下彩椒洋葱和黑胡椒，大火炒至断生。"), 95, "beef"),
-        Recipe("芹菜炒牛肉", "牛肉", listOf("芹菜", "红椒"), "牛里脊、芹菜、红椒、姜蒜、生抽、淀粉", listOf("牛肉切丝腌制，芹菜切段。", "牛肉快速滑炒盛出。", "姜蒜爆香，下芹菜和红椒。", "回锅牛肉，加生抽翻炒至断生。"), 94, "beef"),
-        Recipe("土豆烧牛肉", "牛肉", listOf("土豆", "胡萝卜"), "牛腩、土豆、胡萝卜、葱姜、八角、生抽", listOf("牛腩焯水切块。", "葱姜和香料炒香，加入牛肉翻炒。", "加水和生抽炖至牛肉八成熟。", "加入土豆胡萝卜继续炖至软烂。"), 93, "beef"),
-        Recipe("孜然羊肉", "羊肉", listOf("洋葱", "香菜"), "羊肉片、洋葱、香菜、孜然、辣椒面、生抽", listOf("羊肉片擦干水分。", "热锅大火炒羊肉至变色。", "加入洋葱快速翻炒。", "撒孜然和辣椒面，最后放香菜翻匀。"), 94, "lamb"),
-        Recipe("葱爆羊肉", "羊肉", listOf("大葱"), "羊肉片、大葱、生抽、料酒、白胡椒", listOf("羊肉片加料酒和白胡椒腌5分钟。", "大葱切滚刀块。", "热锅大火炒羊肉。", "加入大葱和生抽快速翻炒出锅。"), 93, "lamb"),
-        Recipe("照烧鸡腿", "鸡肉", listOf("西兰花", "胡萝卜"), "鸡腿、照烧汁、西兰花、胡萝卜、芝麻", listOf("鸡腿去骨，用少量盐腌制。", "鸡皮朝下煎至金黄，再翻面煎熟。", "倒入照烧汁，小火收至浓稠。", "西兰花和胡萝卜焯熟，鸡腿切块淋汁。"), 95, "chicken"),
-        Recipe("宫保鸡丁", "鸡肉", listOf("黄瓜", "胡萝卜"), "鸡胸肉、花生、黄瓜、胡萝卜、干辣椒、花椒", listOf("鸡肉切丁，加淀粉和生抽腌制。", "调宫保汁。", "鸡丁滑炒至变色盛出。", "干辣椒花椒炒香，下蔬菜和鸡丁，倒宫保汁收汁，撒花生。"), 94, "chicken"),
-        Recipe("咖喱鸡肉饭", "鸡肉", listOf("土豆", "胡萝卜", "洋葱"), "鸡腿肉、土豆、胡萝卜、洋葱、咖喱块、米饭", listOf("鸡肉切块，土豆胡萝卜洋葱切块。", "炒香洋葱和鸡肉。", "加入土豆胡萝卜和清水煮至软。", "关小火加入咖喱块融化，浇在米饭上。"), 96, "chicken"),
-        Recipe("香菇炖鸡", "鸡肉", listOf("香菇", "冬瓜"), "鸡腿、鲜香菇、冬瓜、姜、葱、料酒", listOf("鸡块焯水。", "姜葱炒香后加入鸡块和料酒。", "加水炖煮25分钟。", "加入香菇和冬瓜再炖15分钟，调盐。"), 92, "chicken"),
-        Recipe("香酥鸭", "鸭肉", listOf("黄瓜", "葱"), "鸭腿、五香粉、葱、黄瓜、面粉、甜面酱", listOf("鸭腿用五香粉和盐腌制。", "蒸熟后擦干表皮。", "烤或煎至表皮酥脆。", "切片配黄瓜葱丝和甜面酱。"), 90, "duck"),
-        Recipe("啤酒鸭", "鸭肉", listOf("青椒", "土豆"), "鸭块、啤酒、青椒、土豆、姜蒜、豆瓣酱", listOf("鸭块焯水。", "姜蒜和豆瓣酱炒香，加入鸭块。", "倒啤酒炖至鸭肉软熟。", "加入土豆炖透，最后加入青椒。"), 93, "duck"),
-        Recipe("蒜蓉虾", "虾", listOf("粉丝", "蒜"), "鲜虾、粉丝、大蒜、小米椒、生抽、蚝油", listOf("粉丝泡软铺盘，虾开背去虾线。", "蒜末和小米椒用热油炒香。", "把蒜蓉铺在虾上。", "蒸8分钟，淋生抽和热油。"), 95, "shrimp"),
-        Recipe("白灼虾", "虾", listOf("生菜", "姜"), "鲜虾、生菜、姜、葱、生抽", listOf("锅中水加姜葱烧开。", "放入鲜虾煮至变红卷曲。", "捞出冰水快速降温。", "配生抽蘸食，生菜另盘。"), 94, "shrimp"),
-        Recipe("西兰花炒虾仁", "虾", listOf("西兰花", "胡萝卜"), "虾仁、西兰花、胡萝卜、蒜、生抽", listOf("虾仁加少量盐和淀粉腌制。", "西兰花和胡萝卜焯水。", "蒜末爆香，炒虾仁至变色。", "加入蔬菜和生抽，大火翻匀。"), 97, "shrimp"),
-        Recipe("清蒸鲈鱼", "鱼", listOf("葱", "姜"), "鲈鱼、葱、姜、蒸鱼豉油、食用油", listOf("鱼清理后两面划刀，放姜片。", "水开后上锅蒸8至10分钟。", "倒掉蒸出的水，铺葱丝。", "淋蒸鱼豉油和热油。"), 96, "fish"),
-        Recipe("番茄炒蛋", "鸡蛋", listOf("番茄"), "鸡蛋、番茄、葱、盐、食用油", listOf("鸡蛋打散炒熟盛出。", "番茄切块炒出汁。", "鸡蛋回锅翻匀。", "加盐和葱花出锅。"), 92, "egg"),
-        Recipe("家常豆腐", "豆制品", listOf("青椒", "木耳"), "老豆腐、青椒、木耳、葱姜蒜、生抽、蚝油、淀粉", listOf("豆腐切块煎至两面金黄。", "青椒和木耳切好。", "葱姜蒜爆香后下青椒木耳。", "加入豆腐、生抽和蚝油，加少量水烧至入味。"), 94, "tofu"),
-        Recipe("麻婆豆腐", "豆制品", listOf("青蒜", "辣椒"), "嫩豆腐、牛肉末、豆瓣酱、花椒、青蒜、辣椒", listOf("豆腐切块焯水。", "牛肉末炒散，加入豆瓣酱和花椒炒香。", "加水放入豆腐，小火烧入味。", "淀粉勾薄芡，撒青蒜。"), 93, "tofu"),
-        Recipe("蒜蓉上海青", "绿叶蔬菜", listOf("上海青"), "上海青、大蒜、食用油、盐", listOf("上海青洗净沥干，大蒜切末。", "热锅少油爆香蒜末。", "加入上海青大火快速翻炒至刚断生。", "加盐调味立即出锅。"), 94, "green"),
-        Recipe("香菇炒油麦菜", "绿叶蔬菜", listOf("油麦菜", "香菇"), "油麦菜、鲜香菇、大蒜、蚝油、盐、食用油", listOf("油麦菜洗净切段，香菇切片。", "蒜末爆香，先下香菇炒软。", "加入油麦菜大火翻炒。", "加蚝油和少量盐，炒至刚断生。"), 95, "green"),
-        Recipe("清炒空心菜", "绿叶蔬菜", listOf("空心菜"), "空心菜、大蒜、盐、食用油", listOf("空心菜洗净切段，大蒜切末。", "热锅下油爆香蒜末。", "大火加入空心菜快速翻炒。", "加盐炒匀，保持脆嫩后出锅。"), 94, "green"),
-        Recipe("蚝油生菜", "绿叶蔬菜", listOf("生菜"), "生菜、大蒜、蚝油、生抽、食用油", listOf("生菜洗净沥干。", "水开后焯生菜十几秒，立即捞出。", "蒜末爆香，加入蚝油和少量生抽。", "将料汁淋在生菜上。"), 93, "green"),
-        Recipe("番茄西兰花", "蔬菜", listOf("番茄", "西兰花"), "番茄、西兰花、大蒜、盐、食用油", listOf("西兰花切小朵焯水，番茄切块。", "蒜末爆香，加入番茄炒出汁。", "放入西兰花翻炒。", "加盐调味，炒匀出锅。"), 95, "vegetable"),
-        Recipe("酸辣土豆丝", "蔬菜", listOf("土豆", "青椒"), "土豆、青椒、干辣椒、醋、盐、蒜", listOf("土豆切细丝，清水冲洗去淀粉。", "干辣椒和蒜末爆香。", "加入土豆丝和青椒大火快炒。", "沿锅边淋醋，加盐翻匀出锅。"), 92, "vegetable"),
-        Recipe("凉拌黄瓜", "蔬菜", listOf("黄瓜"), "黄瓜、大蒜、生抽、醋、香油", listOf("黄瓜拍裂切段。", "蒜切末。", "加入生抽、醋和少量香油。", "拌匀后冷藏片刻食用。"), 90, "vegetable"),
-        Recipe("冬瓜虾皮汤", "汤", listOf("冬瓜"), "冬瓜、虾皮、姜、葱、盐", listOf("冬瓜切片。", "姜和虾皮炒香。", "加水煮开后放入冬瓜。", "煮至冬瓜透明，调盐撒葱花。"), 96, "soup"),
-        Recipe("番茄蛋花汤", "汤", listOf("番茄"), "番茄、鸡蛋、葱、盐、香油", listOf("番茄切块炒出汁。", "加入清水煮开。", "鸡蛋打散沿锅边淋入。", "调盐，滴少量香油。"), 96, "soup"),
-        Recipe("紫菜豆腐汤", "汤", listOf("紫菜", "豆腐"), "紫菜、豆腐、葱、盐、白胡椒", listOf("豆腐切小块。", "水开后加入豆腐煮几分钟。", "放入紫菜。", "加盐和白胡椒，撒葱花。"), 95, "soup"),
-        Recipe("丝瓜蛋汤", "汤", listOf("丝瓜"), "丝瓜、鸡蛋、姜、盐、香油", listOf("丝瓜去皮切片。", "锅中加水和姜片烧开。", "放入丝瓜煮软。", "淋入蛋液，调盐和香油。"), 95, "soup")
-    )
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val scroll = ScrollView(this)
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(20, 24, 20, 24)
-            setBackgroundColor(Color.rgb(246, 250, 247))
-        }
-        val title = TextView(this).apply {
-            text = "今天中午吃什么？"
-            textSize = 28f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(24, 91, 51))
-            setPadding(0, 0, 0, 6)
-        }
-        root.addView(title)
-        val subtitle = TextView(this).apply {
-            text = "河南家常 · 营养搭配 · 四菜一汤"
-            textSize = 15f
-            setTextColor(Color.GRAY)
-            setPadding(0, 0, 0, 14)
-        }
-        root.addView(subtitle)
-        hero = ImageView(this).apply {
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            setBackgroundColor(Color.rgb(220, 235, 224))
-        }
-        root.addView(hero, LinearLayout.LayoutParams(-1, 240).apply { setMargins(0, 0, 0, 18) })
-        val randomButton = Button(this).apply {
-            text = "🎲  随机一桌"
-            textSize = 18f
-            setOnClickListener { makeMeal() }
-        }
-        root.addView(randomButton, LinearLayout.LayoutParams(-1, 58).apply { setMargins(0, 0, 0, 16) })
-        scoreView = TextView(this).apply {
-            textSize = 18f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(30, 120, 60))
-            gravity = Gravity.CENTER
-            setPadding(0, 8, 0, 18)
-        }
-        root.addView(scoreView)
-        listBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(listBox)
-        scroll.addView(root)
-        setContentView(scroll)
-        makeMeal()
+    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState); buildUi(); makeMeal()}
+    private fun buildUi(){
+        val scroll=ScrollView(this); val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(24,24,24,32);setBackgroundColor(Color.rgb(246,250,246))}
+        val title=TextView(this).apply{text="今天中午吃什么";textSize=30f;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(25,110,55))}
+        root.addView(title,LinearLayout.LayoutParams(-1,wrap()))
+        val sub=TextView(this).apply{text="河南家常 · 营养四菜一汤";textSize=16f;setTextColor(Color.DKGRAY);setPadding(0,4,0,18)};root.addView(sub)
+        hero=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.LTGRAY)};root.addView(hero,LinearLayout.LayoutParams(-1,dp(190)).apply{setMargins(0,0,0,16)})
+        val btn=Button(this).apply{text="🎲  随机一桌";textSize=19f;setOnClickListener{makeMeal()}};root.addView(btn,LinearLayout.LayoutParams(-1,dp(58)).apply{setMargins(0,0,0,12)})
+        scoreView=TextView(this).apply{textSize=17f;gravity=Gravity.CENTER;typeface=android.graphics.Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(30,120,60));setPadding(0,8,0,16)};root.addView(scoreView)
+        listBox=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};root.addView(listBox);scroll.addView(root);setContentView(scroll)
     }
-
-    private fun makeMeal() {
-        val animal = recipes.filter { it.protein in setOf("猪肉", "牛肉", "羊肉", "鸡肉", "鸭肉", "鱼", "虾") }
-        val plant = recipes.filter { it.protein == "豆制品" }
-        val green = recipes.filter { it.protein == "绿叶蔬菜" }
-        val vitamin = recipes.filter { it.protein == "蔬菜" }
-        val chosen = mutableListOf<Recipe>()
-        chosen += animal.random(random)
-        chosen += plant.random(random)
-        chosen += green.random(random)
-        val used = chosen.flatMap { it.vegetables }.toSet()
-        val vitaminPick = vitamin.filter { r -> r.vegetables.none { it in used } }.randomOrNull(random) ?: vitamin.random(random)
-        chosen += vitaminPick
-        val soup = recipes.filter { it.protein == "汤" }.filter { it.vegetables.none { v -> chosen.flatMap { it.vegetables }.contains(v) } }.randomOrNull(random)
-            ?: recipes.filter { it.protein == "汤" }.random(random)
-        val meal = chosen + soup
-        listBox.removeAllViews()
-        meal.forEachIndexed { index, r -> addCard(r, index + 1) }
-        val avg = meal.map { it.score }.average().toInt()
-        val vegetables = chosen.flatMap { it.vegetables }
-        val repeat = vegetables.size != vegetables.toSet().size
-        scoreView.text = "营养搭配评分  $avg / 100  ★★★★★\n蔬菜重复：${if (repeat) "已优化" else "无"} · 蛋白质：${chosen.map { it.protein }.distinct().joinToString("、")}"
-        loadImage(hero, chosen.first().image, chosen.first().name)
-    }
-
-    private fun addCard(r: Recipe, number: Int) {
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(16, 12, 16, 12)
-            setBackgroundColor(Color.WHITE)
-            isClickable = true
-            setOnClickListener { showDetail(r) }
-        }
-        val text = TextView(this).apply {
-            text = "$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}"
-            textSize = 17f
-            setTextColor(Color.DKGRAY)
-        }
-        box.addView(text, LinearLayout.LayoutParams(0, -2, 1f))
-        val arrow = TextView(this).apply {
-            text = "›"
-            textSize = 30f
-            gravity = Gravity.CENTER_VERTICAL
-            setTextColor(Color.GRAY)
-        }
-        box.addView(arrow, LinearLayout.LayoutParams(40, -1))
-        listBox.addView(box, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, 0, 0, 10) })
-    }
-
-    private fun showDetail(r: Recipe) {
-        val body = StringBuilder().apply {
-            append("食材\n${r.ingredients}\n\n")
-            append("做法\n")
-            r.steps.forEachIndexed { i, s -> append("${i + 1}. $s\n") }
-            append("\n营养评分：${r.score}/100")
-        }
-        AlertDialog.Builder(this).setTitle(r.name).setMessage(body.toString()).setPositiveButton("知道了", null).show()
-    }
-
-    private fun loadImage(view: ImageView, type: String, dishName: String) {
-        val fixed = when (type) {
-            "pork" -> "https://images.unsplash.com/photo-1786114777708-46385013cd00?auto=format&fit=crop&w=1200&q=80"
-            "shrimp" -> "https://images.unsplash.com/photo-1633504581786-316c8002b1b9?auto=format&fit=crop&w=1200&q=80"
-            "chicken" -> "https://images.unsplash.com/photo-1774271694486-4a7abbc3b78d?auto=format&fit=crop&w=1200&q=80"
-            "duck" -> "https://images.unsplash.com/photo-1785899578127-f3883106c735?auto=format&fit=crop&w=1200&q=80"
-            else -> "https://source.unsplash.com/1200x800/?${URLEncoder.encode("Chinese food $dishName", "UTF-8")}"
-        }
-        thread {
-            try {
-                val bitmap = BitmapFactory.decodeStream(URL(fixed).openStream())
-                runOnUiThread { if (bitmap != null) view.setImageBitmap(bitmap) }
-            } catch (_: Exception) { }
-        }
-    }
+    private fun makeMeal(){
+        val animal=recipes.filter{it.protein in setOf("猪肉","牛肉","羊肉","鸡肉","鸭肉","鱼","虾")};val plant=recipes.filter{it.protein=="豆制品"};val green=recipes.filter{it.protein=="绿叶蔬菜"};val vitamin=recipes.filter{it.protein=="蔬菜"};
+        val chosen=mutableListOf<Recipe>();chosen+=animal.random(random);chosen+=plant.random(random);chosen+=green.random(random);val used=chosen.flatMap{it.vegetables}.toSet();chosen+=vitamin.filter{r->r.vegetables.none{it in used}}.randomOrNull(random)?:vitamin.random(random);val soup=recipes.filter{it.protein=="汤"}.filter{it.vegetables.none{v->chosen.flatMap{it.vegetables}.contains(v)}}.randomOrNull(random)?:recipes.filter{it.protein=="汤"}.random(random);val meal=chosen+soup;listBox.removeAllViews();meal.forEachIndexed{index,r->addCard(r,index+1)};scoreView.text="营养搭配评分  ${meal.map{it.score}.average().toInt()} / 100 ★★★★★";loadImage(hero,meal.first().image)}
+    private fun addCard(r:Recipe,number:Int){val box=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(dp(14),dp(12),dp(14),dp(12));setBackgroundColor(Color.WHITE);setOnClickListener{showDetail(r)}};val label=TextView(this).apply{setText("$number  ${r.name}\n${r.protein} · ${r.vegetables.joinToString("、")}\n营养评分 ${r.score}");textSize=17f;setTextColor(Color.DKGRAY)};box.addView(label,LinearLayout.LayoutParams(0,wrap(),1f));val arrow=TextView(this).apply{text="›";textSize=30f;gravity=Gravity.CENTER_VERTICAL;setTextColor(Color.GRAY)};box.addView(arrow,LinearLayout.LayoutParams(dp(40),-1));listBox.addView(box,LinearLayout.LayoutParams(-1,wrap()).apply{setMargins(0,0,0,dp(10))})}
+    private fun showDetail(r:Recipe){AlertDialog.Builder(this).setTitle(r.name).setMessage("食材：${r.ingredients}\n\n做法：${r.steps}").setPositiveButton("知道了",null).show()}
+    private fun loadImage(view:ImageView,dish:String){thread{try{val q=URLEncoder.encode("$dish food", "UTF-8");val url=URL("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=$q&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json");val json=url.readText();val thumb=Regex("\\\"thumburl\\\":\\\"([^\\\"]+)").find(json)?.groupValues?.get(1)?.replace("\\/","/");if(thumb!=null){val bmp=BitmapFactory.decodeStream(URL(thumb).openStream());runOnUiThread{view.setImageBitmap(bmp)}}}catch(_:Exception){}}}
+    private fun dp(v:Int)= (v*resources.displayMetrics.density).toInt();private fun wrap()=LinearLayout.LayoutParams.WRAP_CONTENT
 }
