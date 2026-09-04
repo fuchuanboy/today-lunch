@@ -29,18 +29,16 @@ jobs:
           rm -f app/src/main/java/com/fuchuanboy/todaylunch/Ultimate2026Activity.kt
       - name: Generate large recipe catalog
         run: |
-          python3 tools/generate_recipe_catalog.py
+          python3 tools/finalize_catalog.py
           python3 - <<'PY'
           import csv
+          from collections import Counter
           p='app/src/main/assets/recipes.csv'
           with open(p,encoding='utf-8',newline='') as f:
               rows=list(csv.DictReader(f))
           print('Recipe catalog rows:',len(rows))
-          if len(rows) < 2000:
-              raise SystemExit('Recipe catalog is below 2000 rows')
-          print('Category counts:')
-          from collections import Counter
-          print(Counter(r['type'] for r in rows))
+          print('Category counts:',Counter(r['type'] for r in rows))
+          if len(rows) < 2000: raise SystemExit('Recipe catalog is below 2000 rows')
           PY
       - name: Normalize Kotlin source
         run: |
