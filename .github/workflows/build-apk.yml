@@ -44,8 +44,8 @@ jobs:
               'score.text =': 'scoreView.text ='
           }
           for a,b in replacements.items(): s=s.replace(a,b)
-          # The previous normalization accidentally left one direct TextView assignment.
           s=s.replace('scoreView = "营养搭配评分', 'scoreView.text = "营养搭配评分')
+          s=s.replace('text = "$number  ${r.name}\\n${r.protein} · ${r.vegetables.joinToString("、")}\\n营养评分 ${r.score}"', 'setText("$number  ${r.name}\\n${r.protein} · ${r.vegetables.joinToString("、")}\\n营养评分 ${r.score}")')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Build debug APK
